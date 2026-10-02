@@ -1,0 +1,49 @@
+env_name: MaxNonAdjacentSumEnv_base
+source: Codeforces_28882_I
+router: unified
+mode: codegym
+env_serialize: codegym_raw
+template_style: base
+markers:
+  enter: <|FunctionCallBegin|>
+  exit: <|FunctionCallEnd|>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 128
+  emit_eos: true
+argument_order: free
+head:
+  action_name: true
+  argument_key: false
+  closed_value: false
+  init_from: mean_pool
+actions:
+  InitializeState:
+    description: call InitializeState
+    surface_form: '[{"name": "InitializeState", "parameters":'
+    init_weight_with: 0
+    params: {}
+  ProcessElement:
+    description: call ProcessElement with 1 param(s)
+    surface_form: '[{"name": "ProcessElement", "parameters":'
+    init_weight_with: 0
+    params: {}
+  GetFinalResult:
+    description: call GetFinalResult
+    surface_form: '[{"name": "GetFinalResult", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Observe:
+    description: call Observe
+    surface_form: '[{"name": "Observe", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Done:
+    description: call Done with 1 param(s)
+    surface_form: '[{"name": "Done", "parameters":'
+    init_weight_with: 0
+    params: {}
+value_sets: {}

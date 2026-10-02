@@ -1,0 +1,12 @@
+# Inherits config/experiments.yaml main.defaults; only differences belong here.
+title: 共享 policy LM 表示 + mean
+description: 使用 policy LM 表示和无参数 mean projector；独立 encoder 训练设置不适用。
+overrides:
+  encoder_backbone: policy_lm
+  encoder_projector: mean
+  training_schedule: joint_optimization
+  encoder_training: not_applicable
+benchmarks:
+- gsm8k
+- alfworld
+- codegym

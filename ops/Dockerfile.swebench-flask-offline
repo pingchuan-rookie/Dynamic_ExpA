@@ -1,0 +1,7 @@
+# Explicit online preparation of the pinned Flask smoke image, not evaluation.
+FROM swebench/sweb.eval.x86_64.pallets_1776_flask-5014@sha256:bde4fbdafa36141d4396944da88ec37aabdef612ed36920090675bccd0ca5d72
+RUN /opt/miniconda3/envs/testbed/bin/python -m pip download --no-deps \
+    --dest /opt/swebench-wheels setuptools==75.1.0 wheel==0.40.0
+ENV PIP_NO_INDEX=1 PIP_FIND_LINKS=/opt/swebench-wheels PIP_DISABLE_PIP_VERSION_CHECK=1
+LABEL dyad.swebench.upstream_digest="swebench/sweb.eval.x86_64.pallets_1776_flask-5014@sha256:bde4fbdafa36141d4396944da88ec37aabdef612ed36920090675bccd0ca5d72"
+LABEL dyad.swebench.preparation="build-wheelhouse-setuptools-75.1.0-wheel-0.40.0-v1"

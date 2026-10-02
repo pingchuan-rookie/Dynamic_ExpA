@@ -1,0 +1,117 @@
+# WebShop full: explicit starting budgets, not measured GPU capacity profiles.
+# Environment steps and generated turns are separate from trajectory token limits.
+defaults:
+  train_batch_size: '32'
+  ppo_mini_batch_size: '32'
+  rollout_n: '8'
+  ppo_epochs: '1'
+  max_prompt_length: '2048'
+  max_response_length: '30720'
+  max_assistant_turns: '100'
+  max_tool_turns: '100'
+  webshop_max_steps: '100'
+  # Tool responses are counted in characters, not tokens.
+  max_tool_response_length: '16384'
+  param_offload: 'False'
+  optimizer_offload: 'False'
+  attn_impl: flash_attention_2
+  use_remove_padding: 'True'
+  total_epochs: '2'
+  test_freq: '2'
+  save_freq: '10'
+  agent_num_workers: '1'
+  # Each actor holds a full environment; do not allocate batch*n copies by default.
+  webshop_backend_replicas: '1'
+  webshop_sessions_per_backend: '64'
+# Shared step protocol; legacy blocks remain for checkpoint evaluation.
+step_profile:
+  step_rollout_enabled: 'True'
+  step_profile: webshop_official_v2
+  step_history_length: '2'
+  step_invalid_action_penalty: '0.1'
+  ppo_mini_batch_size: '64'
+  max_prompt_length: '4096'
+  max_response_length: '512'
+  max_assistant_turns: '15'
+  max_tool_turns: '15'
+  webshop_max_steps: '15'
+  learning_rate: 1e-6
+  kl_loss_coef: '0.01'
+  rollout_temperature: '1.0'
+  rollout_top_p: '1.0'
+  val_temperature: '0.4'
+  val_top_p: '1.0'
+  entropy_coeff: '0.001'
+  clip_ratio: '0.2'
+  loss_agg_mode: token-mean
+  gigpo_mode: mean_norm
+algorithms:
+  # Inherit each grpo_react config layer; only GiGPO-specific overrides belong here.
+  gigpo: {}
+  dyad:
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.05'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+  grpo_react:
+    max_num_seqs: '128'
+    max_num_batched_tokens: '8192'
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.001'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+models:
+  qwen2.5-0.5b-instruct: &model
+    note: Starting configuration only; full-context training capacity is unverified.
+    hardware:
+      a6000: &hardware
+        algorithms:
+          dyad:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.30'
+            dyad_encoder_num_gpus: '1'
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.30'
+      h100: *hardware
+      h200: *hardware
+  qwen3.5-0.8b:
+    note: Local testing only; not a cluster launch profile.
+    hardware:
+      a6000: *hardware
+  qwen3.5-2b: &qwen35
+    defaults:
+      param_offload: 'True'
+      optimizer_offload: 'True'
+    hardware:
+      a6000: *hardware
+      h100: *hardware
+      h200: *hardware
+  qwen3.5-4b: *qwen35
+  qwen3.5-9b: *qwen35
+  qwen3.5-27b: *qwen35
+debug:
+  step_profile:
+    ppo_mini_batch_size: '4'
+    total_epochs: '2'
+    total_training_steps: '2'
+    test_freq: '-1'
+  defaults:
+    train_batch_size: '4'
+    ppo_mini_batch_size: '4'
+    rollout_n: '2'
+    ppo_epochs: '1'
+    train_max_samples: '8'
+    val_max_samples: '4'
+    val_batch_size: '2'
+    total_training_steps: '2'
+    test_freq: '-1'
+  algorithms:
+    dyad:
+      save_freq: '1'
+    grpo_react:
+      save_freq: '-1'

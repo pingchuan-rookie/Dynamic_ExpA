@@ -1,0 +1,108 @@
+# Fixed samples/update; model/hardware profiles only change execution batches.
+# ENCODER_BATCH_SIZE counts action prompts, not training samples.
+default_model: qwen3.5_2b
+defaults:
+  BATCH_SIZE: '64'
+  EPOCHS: '6'
+  EVAL_EVERY: '5'
+  MAX_LENGTH: '2048'
+  ENCODER_MAX_LENGTH: '1792'
+  DTYPE: bfloat16
+  LIMIT: '0'
+  PROJECTOR: attention
+  REPRESENTATION: final_layer_hidden_states
+  SCALE: unit
+  LR: 1e-4
+  LR_SCHEDULE: cosine
+  WARMUP_RATIO: '0.03'
+  WEIGHT_DECAY: '0.0'
+  GRAD_CLIP: '1.0'
+  SEED: '42'
+  ENCODER_MODEL: ''
+  POLICY_DEVICE: cuda:0
+  ENCODER_DEVICE: cuda:1
+hardware:
+  a6000: {}
+  a100: {}  # A100 80GB; capacity starting points, not GPU-validated.
+  h100: {}
+  h200: {}
+models:
+  qwen3.5_2b:
+    path: Qwen/Qwen3.5-2B
+    note: Capacity starting points; validate peak memory and throughput on the target
+      GPU.
+    hardware:
+      a6000:
+        MICRO_BATCH_SIZE: '8'
+        EVAL_BATCH_SIZE: '8'
+        ENCODER_BATCH_SIZE: '8'
+      a100:
+        MICRO_BATCH_SIZE: '32'
+        EVAL_BATCH_SIZE: '32'
+        ENCODER_BATCH_SIZE: '32'
+      h100:
+        MICRO_BATCH_SIZE: '32'
+        EVAL_BATCH_SIZE: '32'
+        ENCODER_BATCH_SIZE: '32'
+      h200:
+        MICRO_BATCH_SIZE: '32'
+        EVAL_BATCH_SIZE: '32'
+        ENCODER_BATCH_SIZE: '64'
+  qwen3.5_4b:
+    path: Qwen/Qwen3.5-4B
+    note: Capacity starting points; validate peak memory and throughput on the target
+      GPU.
+    hardware:
+      a100:
+        MICRO_BATCH_SIZE: '16'
+        EVAL_BATCH_SIZE: '16'
+        ENCODER_BATCH_SIZE: '16'
+      h100:
+        MICRO_BATCH_SIZE: '16'
+        EVAL_BATCH_SIZE: '16'
+        ENCODER_BATCH_SIZE: '16'
+      h200:
+        MICRO_BATCH_SIZE: '32'
+        EVAL_BATCH_SIZE: '32'
+        ENCODER_BATCH_SIZE: '32'
+  qwen3.5_9b:
+    path: Qwen/Qwen3.5-9B
+    note: Capacity starting points; validate peak memory and throughput on the target
+      GPU.
+    hardware:
+      a100:
+        MICRO_BATCH_SIZE: '8'
+        EVAL_BATCH_SIZE: '8'
+        ENCODER_BATCH_SIZE: '8'
+      h100:
+        MICRO_BATCH_SIZE: '8'
+        EVAL_BATCH_SIZE: '8'
+        ENCODER_BATCH_SIZE: '8'
+      h200:
+        MICRO_BATCH_SIZE: '16'
+        EVAL_BATCH_SIZE: '16'
+        ENCODER_BATCH_SIZE: '16'
+  qwen3.5_27b:
+    path: Qwen/Qwen3.5-27B
+    note: Capacity starting points; validate peak memory and throughput on the target
+      GPU.
+    hardware:
+      a100:
+        MICRO_BATCH_SIZE: '2'
+        EVAL_BATCH_SIZE: '2'
+        ENCODER_BATCH_SIZE: '2'
+      h100:
+        MICRO_BATCH_SIZE: '2'
+        EVAL_BATCH_SIZE: '2'
+        ENCODER_BATCH_SIZE: '2'
+      h200:
+        MICRO_BATCH_SIZE: '8'
+        EVAL_BATCH_SIZE: '8'
+        ENCODER_BATCH_SIZE: '8'
+debug:
+  MICRO_BATCH_SIZE: '2'
+  EVAL_BATCH_SIZE: '2'
+  EPOCHS: '1'
+  EVAL_EVERY: '4'
+  LIMIT: '128'
+  ENCODER_BATCH_SIZE: '2'

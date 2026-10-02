@@ -1,0 +1,12 @@
+# Refresh only DIVE's isolated CPU dependencies on an existing training image.
+# docker build -f ops/Dockerfile.dive --build-arg BASE_IMAGE=<training-image> -t <new-image> .
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+USER root
+COPY ops/env_deps/dive/requirements.lock.txt /tmp/dive-requirements.lock.txt
+RUN test -x /opt/venv-dive/bin/python \
+    && test -x /opt/venv-expa-verl/bin/python \
+    && uv pip sync --python /opt/venv-dive/bin/python /tmp/dive-requirements.lock.txt \
+    && uv pip install --python /opt/venv-dive/bin/python "ray==$(/opt/venv-expa-verl/bin/python -c 'import ray; print(ray.__version__)')" \
+    && uv pip check --python /opt/venv-dive/bin/python \
+    && /opt/venv-dive/bin/python -c 'import azure.identity, openai'

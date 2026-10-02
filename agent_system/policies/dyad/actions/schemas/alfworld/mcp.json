@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "alfworld",
+  "tools": [
+    {
+      "name": "goto",
+      "description": "move to a target receptacle or location",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle or location this action acts on"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "take",
+      "description": "pick up an object from a receptacle or location",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object to pick up"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          },
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle or location that currently holds it"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object",
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "put",
+      "description": "place an object into or onto a target receptacle",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object being carried"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          },
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle or surface to place it into or onto"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object",
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "open",
+      "description": "open a receptacle that can be opened",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle to open"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "close",
+      "description": "close a receptacle that is currently open",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle to close"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "toggle",
+      "description": "toggle the state of an object, such as switching a lamp on or off",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object this action acts on"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object"
+        ]
+      }
+    },
+    {
+      "name": "use",
+      "description": "use an object, such as turning on a lamp",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object this action acts on"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object"
+        ]
+      }
+    },
+    {
+      "name": "clean",
+      "description": "clean an object using a receptacle or cleaning location",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object to clean"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          },
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle or cleaning location used to clean it"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object",
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "heat",
+      "description": "heat an object using a receptacle or heating appliance",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object to heat"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          },
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle or appliance used to heat it"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object",
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "cool",
+      "description": "cool an object using a receptacle or cooling appliance",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object to cool"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          },
+          "receptacle": {
+            "type": "string",
+            "description": "the receptacle or appliance used to cool it"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart receptacles sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object",
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "slice",
+      "description": "slice an object using a knife you are carrying",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "the object to slice"
+          },
+          "id_object": {
+            "type": "string",
+            "description": "the instance number that tells apart objects sharing this name"
+          },
+          "receptacle": {
+            "type": "string",
+            "description": "the knife used to slice it; despite the slot name this is an object, not a receptacle"
+          },
+          "id_receptacle": {
+            "type": "string",
+            "description": "the instance number that tells apart knives sharing this name"
+          }
+        },
+        "required": [
+          "object",
+          "id_object",
+          "receptacle",
+          "id_receptacle"
+        ]
+      }
+    },
+    {
+      "name": "examine",
+      "description": "inspect a receptacle or object more closely",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "the object or receptacle to inspect"
+          },
+          "id_target": {
+            "type": "string",
+            "description": "the instance number that tells apart targets sharing this name"
+          }
+        },
+        "required": [
+          "target",
+          "id_target"
+        ]
+      }
+    },
+    {
+      "name": "look",
+      "description": "look around the current location",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "inventory",
+      "description": "list the objects currently being carried",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}

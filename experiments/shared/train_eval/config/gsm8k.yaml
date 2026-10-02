@@ -1,0 +1,131 @@
+# Starting profiles from existing configurations; capacity still requires measurement.
+defaults:
+  train_batch_size: '512'
+  ppo_mini_batch_size: '512'
+  rollout_n: '8'
+  ppo_epochs: '1'
+  param_offload: 'False'
+  optimizer_offload: 'False'
+  attn_impl: flash_attention_2
+  use_remove_padding: 'True'
+  total_epochs: '15'
+algorithms:
+  # Inherit each grpo_react config layer; only GiGPO-specific overrides belong here.
+  gigpo: {}
+  dyad:
+    max_prompt_length: '8192'
+    max_response_length: '2048'
+    max_assistant_turns: '8'
+    max_tool_response_length: '512'
+    test_freq: '2'
+    save_freq: '10'
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.05'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+  grpo_react:
+    max_prompt_length: '8192'
+    max_response_length: '2048'
+    max_assistant_turns: '8'
+    max_tool_response_length: '512'
+    test_freq: '5'
+    save_freq: '20'
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.001'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+models:
+  qwen2.5-0.5b-instruct:
+    defaults: {}
+    hardware:
+      a6000: &qwen2_5_0_5b_instruct_a6000
+        algorithms:
+          dyad:
+            micro_batch_size: '8'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.6'
+            dyad_encoder_num_gpus: '1'
+            cuda_visible_devices: 0,1
+          grpo_react:
+            micro_batch_size: '2'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.6'
+      h100: &qwen2_5_0_5b_instruct_h100
+        algorithms: &qwen2_5_0_5b_instruct_h100_algorithms
+          dyad:
+            micro_batch_size: '16'
+            n_gpus_per_node: '4'
+            gpu_mem_util: '0.6'
+            total_epochs: '10'
+            dyad_encoder_num_gpus: '1'
+          grpo_react:
+            micro_batch_size: '16'
+            n_gpus_per_node: '4'
+            gpu_mem_util: '0.6'
+            total_epochs: '10'
+      h200: &qwen2_5_0_5b_instruct_h200
+        note: 继承迁移前 H100/H200 共用档的数值，尚未独立调优。
+        algorithms: *qwen2_5_0_5b_instruct_h100_algorithms
+  qwen3.5-2b:
+    defaults: &qwen3_5_2b_defaults
+      param_offload: true
+      optimizer_offload: true
+    hardware:
+      a6000:
+        note: Local regression profile; full-context capacity requires separate validation.
+        defaults:
+          micro_batch_size: '1'
+          n_gpus_per_node: '2'
+          gpu_mem_util: '0.35'
+        algorithms:
+          dyad:
+            dyad_encoder_num_gpus: '1'
+            cuda_visible_devices: 0,1,2
+          grpo_react: {}
+      h100: &qwen3_5_2b_h100
+        note: Migrated from cluster templates; capacity has not been validated.
+        algorithms: *qwen2_5_0_5b_instruct_h100_algorithms
+      h200: *qwen2_5_0_5b_instruct_h200
+  qwen3.5-4b:
+    defaults: *qwen3_5_2b_defaults
+    hardware:
+      h100: *qwen3_5_2b_h100
+      h200: *qwen2_5_0_5b_instruct_h200
+  qwen3.5-9b:
+    defaults: *qwen3_5_2b_defaults
+    hardware:
+      h100: *qwen3_5_2b_h100
+      h200: *qwen2_5_0_5b_instruct_h200
+  qwen3.5-27b:
+    defaults: *qwen3_5_2b_defaults
+    hardware:
+      h100: *qwen3_5_2b_h100
+      h200: *qwen2_5_0_5b_instruct_h200
+debug:
+  algorithms:
+    dyad:
+      micro_batch_size: '2'
+      n_gpus_per_node: '2'
+      cuda_visible_devices: 0,1,2
+      gpu_mem_util: '0.5'
+      total_training_steps: '2'
+      test_freq: '-1'
+      save_freq: '-1'
+      dyad_encoder_num_gpus: '1'
+    grpo_react:
+      micro_batch_size: '2'
+      n_gpus_per_node: '2'
+      cuda_visible_devices: 0,1
+      gpu_mem_util: '0.5'
+      total_training_steps: '2'
+      test_freq: '-1'
+      save_freq: '-1'
+  experiments:
+    2.2_projector_mean:
+      micro_batch_size: 1
+      gpu_mem_util: 0.25
+    2.3_frozen_encoder_llm:
+      micro_batch_size: 1
+      gpu_mem_util: 0.25

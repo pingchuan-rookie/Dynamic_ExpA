@@ -1,0 +1,10 @@
+# Inherits config/experiments.yaml main.defaults; only differences belong here.
+title: 共享 policy LM 表示 + attention
+description: 使用 policy LM 作为动作表示来源，保留 attention projector。
+overrides:
+  encoder_backbone: policy_lm
+  encoder_training: projector_only
+benchmarks:
+- gsm8k
+- alfworld
+- codegym

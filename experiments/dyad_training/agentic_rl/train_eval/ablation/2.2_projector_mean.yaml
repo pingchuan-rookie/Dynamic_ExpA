@@ -1,0 +1,11 @@
+# Inherits config/experiments.yaml main.defaults; only differences belong here.
+title: 平均池化 projector
+description: 用无参数 mean 池化替代 attention；同时训练 encoder LM，以保留可训练的动作表示路径。
+overrides:
+  encoder_backbone: encoder_lm
+  encoder_projector: mean
+  encoder_training: projector_and_encoder_lm
+benchmarks:
+- gsm8k
+- alfworld
+- codegym

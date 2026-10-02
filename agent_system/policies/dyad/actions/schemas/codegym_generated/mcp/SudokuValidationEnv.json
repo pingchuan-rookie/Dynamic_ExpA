@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "SudokuValidationEnv",
+  "tools": [
+    {
+      "name": "CheckRow",
+      "description": "call CheckRow with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "row_index": {
+            "type": "integer",
+            "description": "row_index (int)"
+          }
+        },
+        "required": [
+          "row_index"
+        ]
+      }
+    },
+    {
+      "name": "CheckColumn",
+      "description": "call CheckColumn with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "col_index": {
+            "type": "integer",
+            "description": "col_index (int)"
+          }
+        },
+        "required": [
+          "col_index"
+        ]
+      }
+    },
+    {
+      "name": "CheckSubBox",
+      "description": "call CheckSubBox with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "box_index": {
+            "type": "integer",
+            "description": "box_index (int)"
+          }
+        },
+        "required": [
+          "box_index"
+        ]
+      }
+    },
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "is_valid": {
+            "type": "boolean",
+            "description": "is_valid (bool)"
+          }
+        },
+        "required": [
+          "is_valid"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "MaxNonAdjacentSumEnv",
+  "tools": [
+    {
+      "name": "InitializeState",
+      "description": "call InitializeState",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "ProcessElement",
+      "description": "call ProcessElement with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "index (int)"
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "GetFinalResult",
+      "description": "call GetFinalResult",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string",
+            "description": "answer (unknown)"
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Inherits config/experiments.yaml main.defaults; only differences belong here.
+title: 冻结 encoder LM
+description: 冻结 encoder backbone，仅联合训练 policy LM 与 projector。
+overrides:
+  encoder_training: projector_only
+benchmarks:
+- gsm8k
+- alfworld
+- codegym

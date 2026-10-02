@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "gsm8k",
+  "tools": [
+    {
+      "name": "calculate",
+      "description": "calculate an arithmetic expression ending with =",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "arithmetic expression ending with = (e.g. 48/2=)"
+          }
+        },
+        "required": [
+          "expression"
+        ]
+      }
+    },
+    {
+      "name": "answer",
+      "description": "submit the final numeric answer and finish",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "final numeric answer (e.g. 72)"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+    }
+  ]
+}

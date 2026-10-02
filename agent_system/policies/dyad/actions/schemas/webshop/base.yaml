@@ -1,0 +1,27 @@
+# Native ReAct command body; dynamic click targets remain environment state.
+env_name: webshop_base
+router: unified
+mode: codegym
+env_serialize: webshop_raw
+markers:
+  enter: <Action>
+  exit: </Action>
+  argument_value_end: "\n"
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  preserve_exit_prefix: true
+  max_value_tokens: 256
+  emit_eos: true
+argument_order: free
+head:
+  action_name: true
+  argument_key: false
+  closed_value: false
+  init_from: mean_pool
+actions:
+  search:
+    surface_form: search[
+    params: {}
+  click:
+    surface_form: click[
+    params: {}

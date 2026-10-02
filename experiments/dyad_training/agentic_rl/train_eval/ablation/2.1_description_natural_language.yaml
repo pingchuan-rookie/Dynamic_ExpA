@@ -1,0 +1,9 @@
+# Inherits config/experiments.yaml main.defaults; only differences belong here.
+title: 自然语言动作描述
+description: 将 encoder 的 MCP 描述替换为自然语言，比较描述形式的影响。
+overrides:
+  encoder_description: natural_language
+benchmarks:
+- gsm8k
+- alfworld
+- codegym

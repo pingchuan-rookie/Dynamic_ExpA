@@ -1,0 +1,37 @@
+# syntax=docker/dockerfile:1
+# Add capability evaluation to the existing cluster image without nested Docker.
+ARG BASE_IMAGE=pingchuan03/dynamic-expa-verl@sha256:5d7d7a74efea7c98cd24f68e0958c34910c78b391c029186aa90747dd9331d82
+ARG CHECKER_IMAGE=capability-eval-checker:local
+FROM ${CHECKER_IMAGE} AS checker
+FROM ${BASE_IMAGE}
+USER root
+# Copy only the standalone Python/NumPy prefix, never the source image's /lib.
+COPY --from=checker /opt/checker-python /opt/checker-python
+COPY experiments/capability_eval/backend_requirements.txt /opt/capability-checker/backend_requirements.txt
+RUN uv venv --python /opt/venv-expa-verl/bin/python /opt/venv-capability-eval \
+    && uv pip install --python /opt/venv-capability-eval/bin/python \
+       -r /opt/capability-checker/backend_requirements.txt
+RUN /opt/venv-capability-eval/bin/python - <<'PY'
+import hashlib
+import importlib.metadata
+import json
+from pathlib import Path
+import subprocess
+
+root = Path('/opt/capability-checker')
+dist = importlib.metadata.distribution('evalscope')
+commit = json.loads(dist.read_text('direct_url.json'))['vcs_info']['commit_id']
+source = Path(dist.locate_file('evalscope/benchmarks/live_code_bench/testing_util.py'))
+(root / 'testing_util.py').write_bytes(source.read_bytes())
+versions = json.loads(subprocess.check_output([
+    '/opt/checker-python/bin/python3.12', '-I', '-c',
+    'import json,sys,numpy; print(json.dumps({"python_version":".".join(map(str,sys.version_info[:3])),"numpy_version":numpy.__version__}))',
+], text=True))
+versions.update(evalscope_commit=commit, checker_sha256=hashlib.sha256(source.read_bytes()).hexdigest())
+(root / 'runtime.json').write_text(json.dumps(versions, indent=2) + '\n')
+print(json.dumps(versions))
+PY
+# Runtime code still comes from the checked-out project; these are pinned dependencies.
+ENV EVAL_PYTHON_BIN=/opt/venv-capability-eval/bin/python
+WORKDIR /workspace/Dynamic_ExpA
+CMD ["/bin/bash"]

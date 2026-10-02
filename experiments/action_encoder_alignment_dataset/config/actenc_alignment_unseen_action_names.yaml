@@ -1,0 +1,50 @@
+# Unseen actions for the Alignment evaluation split.
+#
+# The training strategy document asks for "10-20 unseen synthetic actions" as one of the four
+# Alignment metrics but does not name them, so this file supplies them. Four per domain, twenty in
+# total, and disjoint from config/actenc_alignment_action_names.yaml by construction -- check_action_encoder_alignment_dataset.py
+# asserts the empty intersection rather than trusting the eye.
+#
+# They go through exactly the same Prompt A / Prompt B / balanced sampler / Prompt C pipeline as
+# the seen actions. The only difference is that no case built from them ever reaches train.jsonl.
+#
+# Chosen to be *unseen*, not *unrelated*: each one belongs to its domain and competes with the
+# seen actions for plausibility. Near-synonyms of a seen action are excluded on purpose -- putting
+# `merge` next to `combine` in the same admissible set measures the annotator's ambiguity, not the
+# encoder's generalisation.
+#
+# `translate` was in the transformation slot now held by `encrypt` and had to go for exactly that
+# reason. It is a near-synonym of the seen `convert`, and it showed: six of the eight cases where
+# Prompt C named an action outside its catalogue were a `translate` case whose reasoning said
+# "convert the JSON into YAML". The verb really is the natural one there, so the fix was the
+# action, not the threshold.
+domains:
+  spatial_manipulation:
+    - push
+    - pull
+    - lift
+    - align
+
+  state_change:
+    - pause
+    - resume
+    - charge
+    - dry
+
+  information:
+    - count
+    - summarize
+    - annotate
+    - highlight
+
+  workflow_communication:
+    - notify
+    - escalate
+    - archive
+    - publish
+
+  transformation:
+    - compress
+    - expand
+    - rename
+    - encrypt

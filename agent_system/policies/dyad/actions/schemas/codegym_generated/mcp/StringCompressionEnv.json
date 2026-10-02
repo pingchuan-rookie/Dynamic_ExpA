@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "StringCompressionEnv",
+  "tools": [
+    {
+      "name": "GetNextCharacter",
+      "description": "call GetNextCharacter with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "index (int)"
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "CountConsecutive",
+      "description": "call CountConsecutive with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "index (int)"
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "BuildCompressedPart",
+      "description": "call BuildCompressedPart with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "char": {
+            "type": "string",
+            "description": "char (str)"
+          },
+          "count": {
+            "type": "integer",
+            "description": "count (int)"
+          }
+        },
+        "required": [
+          "char",
+          "count"
+        ]
+      }
+    },
+    {
+      "name": "CompareLengths",
+      "description": "call CompareLengths with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "original_length": {
+            "type": "integer",
+            "description": "original_length (int)"
+          },
+          "compressed_length": {
+            "type": "integer",
+            "description": "compressed_length (int)"
+          }
+        },
+        "required": [
+          "original_length",
+          "compressed_length"
+        ]
+      }
+    },
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string",
+            "description": "answer (unknown)"
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      }
+    }
+  ]
+}

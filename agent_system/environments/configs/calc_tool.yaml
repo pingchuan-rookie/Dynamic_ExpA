@@ -1,0 +1,20 @@
+# Calculator tools lease a stateful CalcSession through each Ray environment worker.
+tools:
+  - class_name: "agent_system.environments.backends.calc.tool.CalcLocalEnvTool"
+    config:
+      type: native
+      env_type: "gsm8k_calc"
+
+      pool_size: auto  # Computed from available Ray CPU divided by num_cpus_per_worker.
+      num_cpus_per_worker: 0.1  # Logical CPU reservation per actor.
+
+      create_kwargs:
+        auto_reset: true
+      strict_action_validation: false  # Calculator actions form an open space.
+      fail_fast_on_error: true  # Session failures abort training instead of silently returning zero reward.
+      execution_timeout_ms: 30000  # Bound calls to unresponsive actors.
+      reward_mode: "last"  # The answer step returns binary reward.
+      max_turns: 20
+
+      # ===== adapter（gsm8k_calc / CalcAdapter）=====
+      tool_name: "calculator"

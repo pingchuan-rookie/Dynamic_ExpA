@@ -1,0 +1,69 @@
+env_name: LongestSubstringEnv_base
+source: Code_Contests_39293_I
+router: unified
+mode: codegym
+env_serialize: codegym_raw
+template_style: base
+markers:
+  enter: <|FunctionCallBegin|>
+  exit: <|FunctionCallEnd|>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 128
+  emit_eos: true
+argument_order: free
+head:
+  action_name: true
+  argument_key: false
+  closed_value: false
+  init_from: mean_pool
+actions:
+  InitializeTracking:
+    description: call InitializeTracking
+    surface_form: '[{"name": "InitializeTracking", "parameters":'
+    init_weight_with: 0
+    params: {}
+  GetCurrentCharacter:
+    description: call GetCurrentCharacter with 1 param(s)
+    surface_form: '[{"name": "GetCurrentCharacter", "parameters":'
+    init_weight_with: 0
+    params: {}
+  CheckCharacterInMap:
+    description: call CheckCharacterInMap with 2 param(s)
+    surface_form: '[{"name": "CheckCharacterInMap", "parameters":'
+    init_weight_with: 0
+    params: {}
+  UpdateStartWindow:
+    description: call UpdateStartWindow with 2 param(s)
+    surface_form: '[{"name": "UpdateStartWindow", "parameters":'
+    init_weight_with: 0
+    params: {}
+  UpdateCharIndexMap:
+    description: call UpdateCharIndexMap with 2 param(s)
+    surface_form: '[{"name": "UpdateCharIndexMap", "parameters":'
+    init_weight_with: 0
+    params: {}
+  UpdateLongestLength:
+    description: call UpdateLongestLength with 1 param(s)
+    surface_form: '[{"name": "UpdateLongestLength", "parameters":'
+    init_weight_with: 0
+    params: {}
+  GetStringLength:
+    description: call GetStringLength
+    surface_form: '[{"name": "GetStringLength", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Observe:
+    description: call Observe
+    surface_form: '[{"name": "Observe", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Done:
+    description: call Done with 1 param(s)
+    surface_form: '[{"name": "Done", "parameters":'
+    init_weight_with: 0
+    params: {}
+value_sets: {}

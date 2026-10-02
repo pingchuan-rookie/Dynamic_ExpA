@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+# Add an isolated official grader to a locally prepared Dyad policy image.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS builder
+USER root
+RUN uv venv --relocatable --python /opt/venv-expa-verl/bin/python /opt/venv-swebench \
+    && uv pip install --python /opt/venv-swebench/bin/python \
+       'mini-swe-agent==2.4.6' \
+       'swebench @ git+https://github.com/SWE-bench/SWE-bench.git@726c5461e2ef52d83cf1ea2107870a8bb3328d57' \
+       "ray[default]==$(/opt/venv-expa-verl/bin/python -c 'import ray; print(ray.__version__)')"
+
+FROM ${BASE_IMAGE} AS grader-runtime
+USER root
+COPY --from=builder /opt/venv-swebench /opt/venv-swebench
+ENV SWE_PYTHON_BIN=/opt/venv-swebench/bin/python
+
+FROM grader-runtime AS offline
+ENV HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+ENV HF_HUB_DISABLE_TELEMETRY=1 WANDB_MODE=disabled RAY_USAGE_STATS_ENABLED=0

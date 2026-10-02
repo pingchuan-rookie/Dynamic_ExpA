@@ -1,0 +1,143 @@
+# syntax=docker/dockerfile:1
+
+# Install isolated project/environment dependencies; provide source and data at runtime.
+FROM nvidia/cuda:12.9.1-cudnn-devel-ubuntu22.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+ENV UV_LINK_MODE=copy
+ENV UV_HTTP_TIMEOUT=120
+
+ENV CUDA_HOME=/usr/local/cuda
+ENV CUDA_PATH=/usr/local/cuda
+ENV TORCH_CUDA_ARCH_LIST="9.0"
+ENV MAX_JOBS=4
+
+ENV HF_HOME=/workspace/.cache/huggingface
+ENV RAY_TMPDIR=/workspace/.runtime/ray_tmp
+ENV TMPDIR=/workspace/.runtime/tmp
+ENV TOKENIZERS_PARALLELISM=false
+ENV VLLM_USE_V1=1
+ENV WANDB_MODE=offline
+
+ENV ALFWORLD_DATA=/workspace/.cache/alfworld
+
+ENV VENV_DYAD=/opt/venv-dyad
+ENV VENV_ALF=/opt/venv-alfworld
+
+# Create TMPDIR before package installation: certificate post-install scripts use mktemp.
+RUN mkdir -p "${TMPDIR}" "${RAY_TMPDIR}" "${HF_HOME}" "${ALFWORLD_DATA}"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl wget ca-certificates \
+    build-essential ninja-build cmake \
+    lsof \
+    libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+RUN uv python install 3.11 3.12
+
+RUN uv venv --python 3.12 ${VENV_DYAD} \
+ && uv venv --python 3.11 ${VENV_ALF}
+
+WORKDIR /build/ExpA_sys
+
+# Copy dependency metadata first to preserve reusable build layers.
+COPY pyproject.toml README.md README.verl.md LICENSE Notice.txt ./
+COPY verl ./verl
+
+# PyTorch cu129
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python \
+    "torch==2.9.0+cu129" "torchvision==0.24.0+cu129" "torchaudio==2.9.0+cu129" \
+    --index-url https://download.pytorch.org/whl/cu129
+
+# Build tools are required when flash-attn compiles without build isolation.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python setuptools wheel packaging ninja
+
+# vLLM + Ray
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python \
+    "vllm==0.12.0" "ray[default]>=2.41.0" \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    --extra-index-url https://download.pytorch.org/whl/cu129 \
+    --index-strategy unsafe-best-match
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python \
+    "flash-attn==2.8.3" --no-build-isolation \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# Resolve dependencies through the project extras before removing the project package.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python ".[vllm]" \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    --extra-index-url https://download.pytorch.org/whl/cu129 \
+    --index-strategy unsafe-best-match
+
+# Remove the installed project package so PYTHONPATH selects mounted source.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip uninstall --python ${VENV_DYAD}/bin/python verl
+
+# Install environment dependencies in the training runtime; keep only one cv2 provider.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python alfworld==0.4.2
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip uninstall --python ${VENV_DYAD}/bin/python opencv-python || true
+
+# =============================================================================
+# 2) agentenv-alfworld（CPU：alfworld + agentenv_alfworld）
+# =============================================================================
+WORKDIR /build/agentenv-alfworld
+
+# Keep opencv-python-headless as the sole cv2 provider.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_ALF}/bin/python alfworld==0.3.3
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip uninstall --python ${VENV_ALF}/bin/python opencv-python || true
+
+# Install server dependencies and use copied source only for build-time checks.
+COPY ops/env_deps/alfworld/requirements.txt /tmp/alfworld-requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_ALF}/bin/python -r /tmp/alfworld-requirements.txt
+
+WORKDIR /build/codegym
+
+# Declare CodeGym paths after expensive training layers to preserve their build cache.
+ENV VENV_CG=/opt/venv-codegym
+
+# Create the CodeGym environment after the expensive training layers.
+RUN uv venv --python 3.11 ${VENV_CG}
+
+COPY ops/env_deps/codegym/requirements.txt ./requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_CG}/bin/python \
+    -r requirements.txt \
+    gymnasium numpy pandas pyarrow tqdm huggingface_hub
+
+# Check dependencies using temporary source paths to simulate runtime mounts.
+RUN set -e; \
+    echo "== ExpA_sys venv 依赖自检 =="; ${VENV_DYAD}/bin/python -c "import torch, vllm, ray, flash_attn; print('torch', torch.__version__, torch.version.cuda); print('vllm', vllm.__version__); print('flash_attn', flash_attn.__version__)"; \
+    echo "== 模拟挂载：PYTHONPATH 指向源码后 import verl =="; PYTHONPATH=/build/ExpA_sys ${VENV_DYAD}/bin/python -c "import verl; print('verl from', verl.__file__)"; \
+    echo "== ExpA_sys venv 内 alfworld(in-process 后端)自检 =="; ${VENV_DYAD}/bin/python -c "import importlib.metadata as m; import alfworld, textworld; print('alfworld in train venv ok', m.version('alfworld'))"; \
+    echo "== alfworld venv 依赖自检 =="; ${VENV_ALF}/bin/python -c "import alfworld, fastapi, uvicorn, gym, cv2; print('alfworld deps ok; cv2', cv2.__version__)"; \
+    echo "== 模拟挂载：PYTHONPATH 指向源码后 import agentenv_alfworld（会读 configs/）=="; PYTHONPATH=/build/agentenv-alfworld ${VENV_ALF}/bin/python -c "import agentenv_alfworld; print('agentenv_alfworld from', agentenv_alfworld.__file__)"; \
+    echo "== codegym venv 依赖自检 =="; ${VENV_CG}/bin/python -c "import fastapi, uvicorn, gymnasium, dill, pydantic, numpy, pandas, pyarrow, psutil, requests; print('codegym deps ok; gymnasium', gymnasium.__version__)"
+
+# Remove temporary source trees; retain dependency environments.
+WORKDIR /workspace
+RUN rm -rf /build
+RUN mkdir -p "${HF_HOME}" "${RAY_TMPDIR}" "${TMPDIR}" "${ALFWORLD_DATA}"
+
+# Verify that runtime project packages must come from mounted source.
+RUN set -e; \
+    test ! -e /build && echo "/build removed ok"; \
+    ${VENV_DYAD}/bin/python -c "import importlib.util as u, sys; sys.exit('verl should NOT be baked into image') if u.find_spec('verl') else print('ok: verl 未烤入镜像，运行时由挂载源码提供')"; \
+    ${VENV_ALF}/bin/python -c "import importlib.util as u, sys; sys.exit('agentenv_alfworld should NOT be baked') if u.find_spec('agentenv_alfworld') else print('ok: agentenv_alfworld 未烤入镜像，运行时由挂载源码提供')"
+
+CMD ["/bin/bash"]

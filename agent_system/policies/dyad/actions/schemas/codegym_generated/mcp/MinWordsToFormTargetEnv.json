@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "MinWordsToFormTargetEnv",
+  "tools": [
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "CheckPrefix",
+      "description": "call CheckPrefix with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "description": "word (str)"
+          },
+          "target_suffix": {
+            "type": "string",
+            "description": "target_suffix (str)"
+          }
+        },
+        "required": [
+          "word",
+          "target_suffix"
+        ]
+      }
+    },
+    {
+      "name": "GetRemainingTarget",
+      "description": "call GetRemainingTarget with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_suffix": {
+            "type": "string",
+            "description": "target_suffix (str)"
+          },
+          "word": {
+            "type": "string",
+            "description": "word (str)"
+          }
+        },
+        "required": [
+          "target_suffix",
+          "word"
+        ]
+      }
+    },
+    {
+      "name": "RecordState",
+      "description": "call RecordState with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_suffix": {
+            "type": "string",
+            "description": "target_suffix (str)"
+          },
+          "steps": {
+            "type": "integer",
+            "description": "steps (int)"
+          }
+        },
+        "required": [
+          "target_suffix",
+          "steps"
+        ]
+      }
+    },
+    {
+      "name": "CheckIfEmpty",
+      "description": "call CheckIfEmpty with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_suffix": {
+            "type": "string",
+            "description": "target_suffix (str)"
+          }
+        },
+        "required": [
+          "target_suffix"
+        ]
+      }
+    },
+    {
+      "name": "GetNextState",
+      "description": "call GetNextState",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "integer",
+            "description": "answer (int)"
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      }
+    }
+  ]
+}

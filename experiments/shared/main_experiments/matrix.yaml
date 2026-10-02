@@ -1,0 +1,17 @@
+version: 1
+methods:
+  grpo: grpo_react
+  gigpo: gigpo
+  dyad-grpo: dyad-grpo
+  dyad-gigpo: dyad-gigpo
+capabilities: [mmlu_pro, hmmt26, livecodebench_v6]
+suites:
+  transfer:
+    models: [Qwen3.5-4B, Qwen3.5-9B, Qwen3.5-27B]
+    sources: [dive, codegym]
+    targets: [alfworld, t2bench, webshop, swebench_verified]
+  retention:
+    models: [Qwen3.5-4B, Qwen3.5-9B]
+    sources: [alfworld, webshop]
+blocked_targets:
+  swebench_verified: SWE-bench Verified fixed 50-task subset of the official 500-task test (selection seed 42, one attempt) is selected; selected-task offline assets, runtime integration and identity-verified official scoring require acceptance before matrix dispatch.

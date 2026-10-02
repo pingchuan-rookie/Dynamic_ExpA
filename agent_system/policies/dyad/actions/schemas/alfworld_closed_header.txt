@@ -1,0 +1,20 @@
+env_name: alfworld_closed
+router: unified
+mode: codegym
+env_serialize: alfworld
+markers:
+  enter: <Action>
+  exit: </Action>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 8
+  emit_eos: true
+argument_order: fixed
+head:
+  action_name: true
+  argument_key: false
+  closed_value: true
+  init_from: mean_pool

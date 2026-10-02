@@ -1,0 +1,87 @@
+# Keep dependency-image build contexts free of local resources and runtime artifacts.
+
+# Local credentials and job declarations.
+lucia_job/
+docker_entrypoint/
+launch/
+.claude/
+**/.env
+**/.env.*
+**/.netrc
+**/.ssh/
+**/.docker/
+
+# Version-control metadata.
+**/.git/
+**/.gitignore
+**/.gitattributes
+
+# Exclude virtual environments, including suffixed backups.
+**/.venv*
+**/venv/
+**/.train_venv/
+**/.hf_venv/
+
+# Python caches and build outputs.
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.egg-info/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/build/
+**/dist/
+
+# Runtime artifacts, logs, and caches.
+artifacts/
+**/wandb/
+**/.cache/
+ExpA_sys/checkpoints/
+ExpA_sys/output/
+ExpA_sys/outputs/
+ExpA_sys/experiments/
+ExpA_sys/data/
+# Images install dependencies; source and data are supplied at runtime.
+/checkpoints/
+/ckpt/
+/outputs/
+/experiments/**
+!/experiments/shared/
+!/experiments/shared/dataset/
+!/experiments/shared/dataset/webshop_requirements.lock.txt
+!/experiments/shared/dataset/prepare_webshop_assets.py
+!/experiments/capability_eval/
+/experiments/capability_eval/*
+!/experiments/capability_eval/backend_requirements.txt
+/data/
+/docs/
+/examples/
+/tests/
+/dyad_test/
+
+# Generated environments supplied at runtime.
+
+# Large data and model files.
+**/*.parquet
+**/*.safetensors
+**/*.ckpt
+**/*.pt
+**/*.pth
+**/*.bin
+**/*.onnx
+**/*.tar
+**/*.tar.gz
+**/*.tgz
+**/*.zip
+
+# Build tooling is not part of the image context.
+/ops/*
+!/ops/env_deps/
+.dockerignore
+
+# Local environment implementation is mounted at runtime.
+/agent_system/environments/env_package/
+
+# Local reference checkouts are never build inputs.
+/repos/

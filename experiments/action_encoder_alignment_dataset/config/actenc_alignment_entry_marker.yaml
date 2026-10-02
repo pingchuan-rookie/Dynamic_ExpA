@@ -1,0 +1,20 @@
+entry_marker_rule:
+  - "Place the action you want to execute immediately after {entry_marker}."
+  - "When you are ready to act, write the action you want to execute after {entry_marker}."
+  - "To execute an action, output {entry_marker} followed by the action you want to take."
+  - "Use {entry_marker} to indicate an action call, and place the selected action immediately after it."
+
+# MCP rules use the same rule IDs without changing case plans or the NL rules above.
+mcp_entry_marker_rule:
+  - 'Place a JSON tool call immediately after {entry_marker}, with the selected action in the "name" field.'
+  - 'When you are ready to act, write a JSON tool call after {entry_marker}, with the selected action in the "name" field.'
+  - 'To execute an action, output {entry_marker} followed by a JSON tool call with the selected action in the "name" field.'
+  - 'Use {entry_marker} to indicate a JSON tool call, and place the selected action in its "name" field.'
+
+entry_marker:
+  - "<tool>"
+  - "<call>"
+  - "Execuate:"
+  - "tool:"
+  - "call:"
+  - "Action:"

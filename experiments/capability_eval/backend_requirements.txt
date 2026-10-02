@@ -1,0 +1,4 @@
+# Install only in an isolated evaluation environment, never the training venv.
+evalscope @ git+https://github.com/modelscope/evalscope.git@09b1be41d05f5996ad58296fb6c59aff28ee3ee9
+safetensors>=0.5
+wandb==0.28.2

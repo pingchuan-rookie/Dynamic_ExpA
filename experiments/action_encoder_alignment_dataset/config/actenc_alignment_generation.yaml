@@ -1,0 +1,88 @@
+# Alignment dataset generation parameters.
+#
+# The dataset size is NOT written here. It is derived:
+#
+#     N_base = 5 domains * 7 mcp sizes * n_per_size
+#     N_SFT  = 2 * N_base            (one tool-specification sample and one natural-language sample)
+#
+# n_per_size = 30 is the worked example in the training strategy document: N_base = 1050 and
+# N_SFT = 2100.
+
+n_per_size: 30
+min_actions: 4
+max_actions: 10
+seed: 42
+
+# The evaluation split built from config/actenc_alignment_unseen_action_names.yaml. Four targets per domain, so the
+# balance constraint here is `n_per_size % 4 == 0` rather than the seen pool's `% 10 == 0`; the
+# sampler derives the modulus from the target pool instead of hardcoding either number.
+unseen:
+  n_per_size: 8
+
+# Every displayed action is a candidate: C_t == cat(e), in catalogue order.
+# The visible catalogue is drawn once; there is no second candidate-subset draw.
+
+# All seen cases train the projector. Split each unseen (domain, label, mcp_size)
+# stratum in half by SHA256(seed:case_id); MCP/NL stay together. Val selects the
+# checkpoint; test is only scored by explicit final evaluation. No new actions/text.
+# Every unseen stratum must contain a positive even number of cases.
+split_seed: 42
+
+# The strong LLM. Reached through the local LiteLLM gateway, which speaks the OpenAI chat
+# completions API; base_url and api_key_env are what the client reads.
+strong_llm:
+  model: claude-sonnet-5
+  base_url: http://localhost:4000/v1
+  api_key_env: ANTHROPIC_AUTH_TOKEN
+  concurrency: 16
+  max_attempts: 8
+  timeout_s: 180
+  # Per-prompt temperature. A and B transcribe a fixed input and want to be boring; C has to
+  # produce a fresh semantic case every call (Prompt C requirement 12) and wants the opposite.
+  temperature:
+    prompt_a: 0.2
+    prompt_b: 0.2
+    prompt_c: 1.0
+
+# An example of an action call, placed in the policy prompt right under the rule. REQUIRED:
+# an empty value used to mean "build the prompt without one", and that variant has been deleted,
+# so an empty value now fails the build rather than silently producing a retired prompt shape.
+#
+# Alignment scores the last input token instead of decoding a call. MCP inputs stop inside
+# the JSON name string; natural-language inputs still stop at the marker.
+# The MCP example demonstrates only the name field, not fabricated execution arguments.
+#
+# `{entry_marker}` is substituted with **this sample's** marker. There are 24 marker
+# configurations, and a hardcoded `tool:` would teach the wrong string in 23 of them.
+#
+# `{action}` is drawn **uniformly from this sample's own cat(e)**, so the example demonstrates a
+# legal call -- the instruction says to choose from the catalogue, and an example that calls
+# something absent from it demonstrates the opposite.
+#
+# Uniformly, and that word is doing the work. Both alternatives leak:
+#   always the label      -> the answer is written in the prompt
+#   never the label       -> one candidate is eliminated for free, and chance rises 1/k -> 1/(k-1)
+# Uniform makes the example independent of the label, so no strategy that reads it beats chance.
+# F10d measures the realised rate against sum(1/k) and fails if it drifts either way.
+policy_prompt:
+  format_example: "For example, {entry_marker} {action}"
+  mcp_format_example: 'For example, the action name field is: {entry_marker}{"name": {action_json}}'
+
+# An instruction appended to the **end** of every action-encoder input. REQUIRED, for the same
+# reason as format_example above: the variant without it no longer exists.
+#
+# The encoder is a frozen AutoModel with no lm_head -- it generates nothing -- so this cannot
+# instruct it in the ordinary sense. Two things make it non-trivial anyway:
+#
+#   position   the encoder is causal, so the last positions are the ones that have attended to
+#              everything. The tool-specification prompt otherwise ends on `required: - object_id`,
+#              about the least informative tail available; ending on the action's own name puts it
+#              where the context is richest.
+#   variation  a sentence identical across candidates adds the same direction to every w_a, and a
+#              shared component cancels in the softmax over C_t. Only `{action}` varies per
+#              candidate, so only `{action}` carries signal.
+#
+# `{action}` is the candidate this prompt is about. It must not name any other candidate -- F11c
+# checks that, because a prompt that mentions a second action stops being about one action.
+encoder_prompt:
+  instruction: "Understand the action {action} defined above, and what distinguishes it from the other actions in the catalogue."

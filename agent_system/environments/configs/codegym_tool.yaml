@@ -1,0 +1,24 @@
+# CodeGym tools use per-task Ray environments.
+# Dataset create_payload.env_str selects the task; the parser forwards serialized tool calls.
+
+tools:
+  - class_name: "agent_system.environments.backends.codegym.tool.CodeGymLocalEnvTool"
+    config:
+      type: native
+      env_type: "codegym"
+
+      pool_size: null  # Prepare independent environments for this worker's assigned trajectories.
+                                     # CODEGYM_ENV_POOL_SIZE must cover the assigned shard.
+      num_cpus_per_worker: 0.25  # Logical CPU reservation per actor.
+      # Use the configured envs_dir or CODEGYM_ENVS_DIR when provided.
+
+      # The dataset supplies the per-sample env_str through create_payload.
+      create_kwargs:
+        auto_reset: true
+        create_payload: {}
+      strict_action_validation: false  # CodeGym does not enumerate available actions here.
+      reward_mode: "last"  # Terminal binary reward.
+      max_turns: 48
+
+      # The wrapper tool name must match the CodeGym parser.
+      tool_name: "codegym_call"

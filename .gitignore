@@ -1,0 +1,139 @@
+# Git boundary: Dynamic_ExpA/ only, not the parent workspace.
+# Version runtime source, experiments, docs, tooling and shared configuration:
+# agent_system/, verl_extensions/, verl/, experiments/, ops/,
+# scripts/, docker/, docs/, examples/, root project files.
+# Exclude local resources below; new source directories are included by default.
+
+# Python and packaging
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.eggs/
+eggs/
+develop-eggs/
+build/
+dist/
+downloads/
+lib/
+lib64/
+parts/
+sdist/
+var/
+tmp/
+.installed.cfg
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Local environments
+.venvs/
+.venv/
+.venv.*/
+venv/
+ENV/
+!**/workers/env/
+
+# Developer tests, smoke runs and their resources live only in dyad_test/.
+/dyad_test/
+**/test/
+**/tests/
+**/unittest/
+test_*.py
+*_test.py
+*smoke*.py
+*smoke*.sh
+*somk*.py
+# SWE-bench's test specification is a production grading component.
+!agent_system/environments/env_package/swebench/source/swebench/harness/test_spec/test_spec.py
+
+# Local agent instructions are maintained by the workspace.
+[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]
+[Cc][Ll][Aa][Uu][Dd][Ee].[Mm][Dd]
+[Cc][Ll][Uu][Aa][Dd][Ee].[Mm][Dd]
+
+# Tests, caches and generated documentation
+.pytest_cache/
+.cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+output.txt
+**/_build/
+/pyrightconfig.json
+target/
+*.mo
+*.pot
+
+# Runtime artifacts, datasets and checkpoints
+/BLOB_SYNC_ALERT.md
+/artifacts/
+/data/
+outputs/
+job/
+wandb/
+ckpt/
+checkpoints/
+logs
+log
+.history/
+playground/
+*.log
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.parquet
+*.tar.gz
+# Dependency lockfiles are versioned; runtime locks belong in ignored resource directories.
+wget-log
+dataset/*
+tensorflow/my_graph/*
+
+# External repository checkouts stay local; environment implementations are versioned.
+/repos/
+
+# Local credentials and job declarations must never enter Git
+.env
+.env.*
+.secrets.env
+.netrc
+.ssh/
+.docker/
+*.secret
+*.pem
+/launch/
+/lucia_job/
+/docker_entrypoint/
+.claude/settings.local.json
+# Blob operations are documented in the workspace sibling ../blob-sync.md.
+
+# Editor and OS state
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+.spyderproject
+.ropeproject
+.python-version
+
+# Framework-generated local files
+local_settings.py
+instance/
+.webassets-cache/
+.scrapy/
+celerybeat-schedule

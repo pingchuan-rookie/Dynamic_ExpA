@@ -1,0 +1,170 @@
+# Batch budget: https://arxiv.org/html/2509.17325#S11.SS1
+# 512 tasks x 8 rollouts; verl multiplies ppo_mini_batch_size=64 by n=8:
+# 512 trajectories/update, 8 optimizer updates/rollout step. Other settings remain project-specific.
+defaults:
+  train_batch_size: '512'
+  rollout_n: '8'
+  ppo_epochs: '1'
+  max_prompt_length: '5120'
+  max_response_length: '24576'
+  max_tool_response_length: '512'
+  param_offload: 'False'
+  optimizer_offload: 'False'
+  attn_impl: flash_attention_2
+  use_remove_padding: 'True'
+  test_freq: '5'
+  ppo_mini_batch_size: '64'
+# Shared step protocol; legacy blocks remain for checkpoint evaluation.
+step_profile:
+  step_rollout_enabled: 'True'
+  step_profile: codegym_native_v2
+  step_history_length: '2'
+  # Official CodeGym reports failed calls without an additional format reward penalty.
+  step_invalid_action_penalty: '0.0'
+  # Per-decision budget; this block owns it for every algorithm and debug run.
+  # 386 is the project-specified value, not the paper's 24576 response budget.
+  max_assistant_turns: '80'
+  max_tool_turns: '80'
+  max_prompt_length: '5120'
+  max_response_length: '386'
+  rollout_temperature: '1.0'
+  kl_loss_coef: '0.01'
+  rollout_top_p: '1.0'
+  val_temperature: '0.4'
+  val_top_p: '1.0'
+  entropy_coeff: '0.001'
+  clip_ratio: '0.2'
+  loss_agg_mode: token-mean
+  total_epochs: '3'
+algorithms:
+  # Inherit each grpo_react config layer; only GiGPO-specific overrides belong here.
+  gigpo: {}
+  dyad:
+    save_freq: '5'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+    total_epochs: '1'
+    learning_rate: 1e-6
+    rollout_temperature: '0.95'
+    kl_loss_coef: '0.01'
+  grpo_react:
+    agent_num_workers: '1'
+    save_freq: '20'
+    rollout_tp_size: '1'
+    total_epochs: '3'
+    learning_rate: 1e-6
+    rollout_temperature: '1.0'
+    lr_warmup_steps: '5'
+models:
+  qwen2.5-0.5b-instruct:
+    defaults: {}
+    hardware:
+      a6000: &id002
+        algorithms:
+          dyad:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            cuda_visible_devices: 0,1
+            gpu_mem_util: '0.45'
+            dyad_encoder_num_gpus: '1'
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.6'
+      h100: &id003
+        algorithms: &id001
+          dyad:
+            micro_batch_size: '1'
+            n_gpus_per_node: '4'
+            gpu_mem_util: '0.5'
+            dyad_encoder_num_gpus: '1'
+            total_epochs: '10'
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '4'
+            gpu_mem_util: '0.5'
+      h200: &id004
+        note: "\u7EE7\u627F\u8FC1\u79FB\u524D H100/H200 \u5171\u7528\u6863\u7684\u6570\
+          \u503C\uFF0C\u5C1A\u672A\u72EC\u7ACB\u8C03\u4F18\u3002"
+        algorithms: *id001
+  qwen3.5-2b:
+    defaults: &id005
+      param_offload: true
+      optimizer_offload: true
+    hardware:
+      a6000:
+        note: Local Dyad profile; validate debug runs before using for full training.
+        algorithms:
+          dyad:
+            micro_batch_size: '1'
+            n_gpus_per_node: '2'
+            gpu_mem_util: '0.35'
+            dyad_encoder_num_gpus: '1'
+            cuda_visible_devices: 0,1,2
+      a6000_eval:
+        note: "\u672C\u5730 Qwen3.5-2B GRPO-ReAct \u8BC4\u4F30\u8D44\u6E90\u6863\uFF1B\
+          \u8BAD\u7EC3\u5BB9\u91CF\u672A\u9A8C\u8BC1\u3002"
+        algorithms:
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.45'
+      h100: &id006
+        note: Migrated from cluster templates; capacity has not been validated.
+        algorithms: *id001
+      h200: *id004
+  qwen3.5-4b:
+    defaults: *id005
+    hardware:
+      h100: *id006
+      h200: *id004
+  qwen3.5-9b:
+    defaults: *id005
+    hardware:
+      h100: *id006
+      h200: *id004
+  qwen3.5-27b:
+    defaults: *id005
+    hardware:
+      h100: *id006
+      h200: *id004
+debug:
+  step_profile:
+    ppo_mini_batch_size: '4'
+    total_epochs: '2'
+    total_training_steps: '2'
+    test_freq: '-1'
+  defaults:
+    train_batch_size: '4'
+    ppo_mini_batch_size: '4'
+    rollout_n: '2'
+    ppo_epochs: '1'
+    train_max_samples: '8'
+    val_max_samples: '4'
+    val_batch_size: '2'
+    agent_num_workers: '2'
+  algorithms:
+    dyad:
+      micro_batch_size: '2'
+      n_gpus_per_node: '2'
+      cuda_visible_devices: 0,1,2
+      gpu_mem_util: '0.45'
+      total_training_steps: '2'
+      test_freq: '-1'
+      save_freq: '1'
+      dyad_encoder_num_gpus: '1'
+    grpo_react:
+      micro_batch_size: '2'
+      n_gpus_per_node: '2'
+      cuda_visible_devices: 0,1
+      gpu_mem_util: '0.45'
+      total_training_steps: '2'
+      test_freq: '-1'
+      save_freq: '-1'
+  experiments:
+    2.2_projector_mean:
+      micro_batch_size: 1
+      gpu_mem_util: 0.25
+    2.3_frozen_encoder_llm:
+      micro_batch_size: 1
+      gpu_mem_util: 0.25

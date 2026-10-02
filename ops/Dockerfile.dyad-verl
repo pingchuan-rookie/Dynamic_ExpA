@@ -1,0 +1,297 @@
+# syntax=docker/dockerfile:1
+
+# Build isolated dependency environments for training and environment services.
+# The builder uses source to resolve dependencies; runtime receives environments and interpreters.
+# Project source is supplied at runtime, avoiding editable finders that override PYTHONPATH.
+# setup_uv.sh reads package pins from this Dockerfile. Check upstream compatibility before changing them.
+# Build with: bash ops/build_verl.sh
+
+# Builder stage: install dependencies and retain environments plus managed interpreters.
+FROM nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04 AS builder
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+ENV UV_LINK_MODE=copy
+ENV UV_HTTP_TIMEOUT=120
+# Use uv environments instead of installing into the externally managed system Python.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+ARG TORCH_CUDA_ARCH_LIST="9.0"
+ENV CUDA_HOME=/usr/local/cuda
+ENV CUDA_PATH=/usr/local/cuda
+ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
+ARG MAX_JOBS=4
+ENV MAX_JOBS=${MAX_JOBS}
+
+ENV HF_HOME=/workspace/.cache/huggingface
+ENV RAY_TMPDIR=/workspace/.runtime/ray_tmp
+ENV TMPDIR=/workspace/.runtime/tmp
+ENV TOKENIZERS_PARALLELISM=false
+ENV VLLM_USE_V1=1
+ENV WANDB_MODE=offline
+
+ENV ALFWORLD_DATA=/workspace/.cache/alfworld
+
+# Keep interpreter paths stable for existing runtime entrypoints.
+ENV VENV_DYAD=/opt/venv-expa-verl
+ENV VENV_ALF=/opt/venv-alfworld
+ENV VENV_CG=/opt/venv-codegym
+
+ENV TORCH_INDEX=https://download.pytorch.org/whl/cu130
+
+RUN mkdir -p "${TMPDIR}" "${RAY_TMPDIR}" \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    git curl wget ca-certificates \
+    build-essential ninja-build cmake \
+    lsof \
+    libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+
+RUN uv venv --relocatable --python 3.12 ${VENV_DYAD} \
+    && uv venv --relocatable --python 3.11 ${VENV_ALF} \
+    && uv venv --relocatable --python 3.11 ${VENV_CG}
+
+# =============================================================================
+# 1) ExpA_verl（GPU：torch cu130 + vllm 0.24 + flash-attn + verl 0.9）
+# =============================================================================
+WORKDIR /workspace/Dynamic_ExpA
+
+# Copy dependency metadata first to preserve reusable build layers.
+COPY pyproject.toml README.md README.verl.md LICENSE Notice.txt ./
+COPY verl ./verl
+
+# Retain the CUDA wheel suffix and the matching PyTorch index.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python \
+    "torch==2.11.0+cu130" "torchvision==0.26.0+cu130" "torchaudio==2.11.0+cu130" \
+    --index-url ${TORCH_INDEX}
+
+# Build tools are required when flash-attn compiles without build isolation.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python setuptools wheel packaging ninja
+
+# Keep vLLM requirements aligned with the pinned PyTorch build.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python \
+    "vllm==0.24.0" "ray[default]>=2.41.0" \
+    --extra-index-url ${TORCH_INDEX} \
+    --index-strategy unsafe-best-match
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python \
+    "flash-attn==2.8.3" --no-build-isolation
+
+# FLA supplies gated-delta-rule kernels; flash-attn covers softmax attention.
+# The pure-Torch fallback can increase memory use. FLA uses Triton without CUDA compilation.
+# causal-conv1d separately supplies convolution kernels; FLA does not replace those.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python \
+    "flash-linear-attention==0.5.2"
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python -e ".[vllm]" \
+    --extra-index-url ${TORCH_INDEX} \
+    --index-strategy unsafe-best-match
+
+# Install TransferQueue explicitly because upstream install_requires omits it.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python "TransferQueue==0.1.8"
+
+# Install ALFWorld and CodeGym dependencies in the training actor environment.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_DYAD}/bin/python alfworld==0.4.2 gymnasium dill \
+    --index-strategy unsafe-best-match \
+    && (uv pip uninstall --python ${VENV_DYAD}/bin/python opencv-python || true) \
+    && ${VENV_DYAD}/bin/python -c "import numpy,sys; v=numpy.__version__; print('numpy', v); sys.exit(0 if int(v.split('.')[0])>=2 else 1)"
+
+# =============================================================================
+# 2) agentenv-alfworld（CPU：alfworld + agentenv_alfworld）
+# =============================================================================
+WORKDIR /build/alfworld
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_ALF}/bin/python alfworld==0.3.3
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip uninstall --python ${VENV_ALF}/bin/python opencv-python || true
+
+COPY ops/env_deps/alfworld/requirements.txt /tmp/alfworld-requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_ALF}/bin/python -r /tmp/alfworld-requirements.txt
+
+WORKDIR /build/codegym
+
+COPY ops/env_deps/codegym/requirements.txt ./online_server/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --python ${VENV_CG}/bin/python \
+    -r online_server/requirements.txt \
+    gymnasium openai pandas pyarrow numpy tqdm "huggingface_hub[cli]"
+
+# Isolated Ray environment workers retain their benchmark dependency snapshots.
+# Match Ray to the driver; official repositories are supplied at runtime.
+COPY ops/env_deps/t2bench /tmp/tau_deployment
+RUN --mount=type=cache,target=/root/.cache/uv \
+    DYAD_PYTHON_BIN=${VENV_DYAD}/bin/python bash /tmp/tau_deployment/install.sh
+
+# DIVE tool workers use the driver's exact Python and Ray versions, with isolated dependencies.
+COPY ops/env_deps/dive/requirements.lock.txt /tmp/dive-requirements.lock.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv venv --relocatable --python ${VENV_DYAD}/bin/python /opt/venv-dive \
+    && printf 'dyad-dive-v1\n' > /opt/venv-dive/.dyad-dive-managed \
+    && uv pip sync --python /opt/venv-dive/bin/python /tmp/dive-requirements.lock.txt \
+    && uv pip install --python /opt/venv-dive/bin/python "ray==$(${VENV_DYAD}/bin/python -c 'import ray; print(ray.__version__)')" \
+    && uv pip check --python /opt/venv-dive/bin/python
+
+# WebShop keeps its Python 3.10/NumPy 1.x backend separate from the GPU driver.
+COPY experiments/shared/dataset/webshop_requirements.lock.txt /tmp/webshop-requirements.lock.txt
+COPY experiments/shared/dataset/prepare_webshop_assets.py /tmp/prepare_webshop_assets.py
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv venv --relocatable --python 3.10 /opt/venv-webshop \
+    && uv pip sync --python /opt/venv-webshop/bin/python /tmp/webshop-requirements.lock.txt \
+        --index-strategy unsafe-best-match
+RUN ${VENV_DYAD}/bin/python - <<'PY'
+import ast
+import hashlib
+from pathlib import Path
+import tarfile
+import urllib.request
+
+source = ast.parse(Path('/tmp/prepare_webshop_assets.py').read_text())
+settings = {node.targets[0].id: ast.literal_eval(node.value) for node in source.body
+            if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
+            and node.targets[0].id in {'JAVA_URL', 'JAVA_SHA256'}}
+archive = Path('/tmp/webshop-java.tar.gz')
+with urllib.request.urlopen(settings['JAVA_URL'], timeout=120) as response, archive.open('wb') as target:
+    import shutil
+    shutil.copyfileobj(response, target)
+assert hashlib.sha256(archive.read_bytes()).hexdigest() == settings['JAVA_SHA256']
+root = Path('/tmp/webshop-java')
+root.mkdir()
+with tarfile.open(archive) as tar:
+    tar.extractall(root, filter='data')
+entries = list(root.iterdir())
+assert len(entries) == 1
+entries[0].rename('/opt/venv-webshop/java')
+root.rmdir()
+archive.unlink()
+PY
+
+RUN set -e; \
+    echo "== builder: verl =="; ${VENV_DYAD}/bin/python -c "import verl; print('verl', verl.__version__, verl.__file__)"; \
+    echo "== builder: agentenv =="; ${VENV_ALF}/bin/python -c "import alfworld, fastapi; print('alfworld', alfworld.__file__)"
+
+# Remove the editable project package while keeping resolved dependencies.
+RUN uv pip uninstall --python ${VENV_DYAD}/bin/python verl || true
+
+FROM nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+ENV UV_LINK_MODE=copy
+ENV UV_HTTP_TIMEOUT=120
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+ARG TORCH_CUDA_ARCH_LIST="9.0"
+ENV CUDA_HOME=/usr/local/cuda
+ENV CUDA_PATH=/usr/local/cuda
+ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
+ARG MAX_JOBS=4
+ENV MAX_JOBS=${MAX_JOBS}
+
+ENV HF_HOME=/workspace/.cache/huggingface
+ENV RAY_TMPDIR=/workspace/.runtime/ray_tmp
+ENV TMPDIR=/workspace/.runtime/tmp
+ENV TOKENIZERS_PARALLELISM=false
+ENV VLLM_USE_V1=1
+ENV WANDB_MODE=offline
+ENV ALFWORLD_DATA=/workspace/.cache/alfworld
+
+ENV VENV_DYAD=/opt/venv-expa-verl
+ENV VENV_ALF=/opt/venv-alfworld
+ENV VENV_CG=/opt/venv-codegym
+
+RUN mkdir -p "${TMPDIR}" "${RAY_TMPDIR}" \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    git curl wget ca-certificates \
+    build-essential ninja-build cmake \
+    lsof \
+    libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Docker CLI talks only to an explicitly supplied runtime daemon for sandbox checks.
+RUN apt-get update && apt-get install -y --no-install-recommends docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Preserve absolute interpreter paths when copying environments from the builder.
+COPY --from=builder /root/.local/share/uv/python /root/.local/share/uv/python
+COPY --from=builder /usr/local/bin/uv /usr/local/bin/uvx /usr/local/bin/
+COPY --from=builder /opt/venv-expa-verl /opt/venv-expa-verl
+COPY --from=builder /opt/venv-alfworld  /opt/venv-alfworld
+COPY --from=builder /opt/venv-codegym   /opt/venv-codegym
+COPY --from=builder /opt/venv-t2bench   /opt/venv-t2bench
+COPY --from=builder /opt/venv-dive      /opt/venv-dive
+COPY --from=builder /opt/venv-webshop   /opt/venv-webshop
+ENV T2BENCH_PYTHON_BIN=/opt/venv-t2bench/bin/python
+ENV DIVE_PYTHON_BIN=/opt/venv-dive/bin/python
+ENV WEBSHOP_PYTHON_BIN=/opt/venv-webshop/bin/python
+ENV WEBSHOP_JAVA_HOME=/opt/venv-webshop/java
+# No benchmark checkout or editable import hook is baked into these venvs.
+RUN /opt/venv-t2bench/bin/python -c "import litellm, importlib.metadata as m; assert m.version('litellm') == '1.81.11'"
+RUN ${VENV_DYAD}/bin/python - <<'PY'
+import json
+import subprocess
+import sys
+import ray
+
+for env in ('t2bench', 'dive'):
+    actual = json.loads(subprocess.check_output([
+        f'/opt/venv-{env}/bin/python', '-c',
+        'import json, sys, ray; print(json.dumps([list(sys.version_info[:3]), ray.__version__]))',
+    ], text=True))
+    assert actual == [list(sys.version_info[:3]), ray.__version__], (env, actual)
+    print(env, 'Python/Ray match:', actual)
+PY
+RUN JAVA_HOME=${WEBSHOP_JAVA_HOME} /opt/venv-webshop/bin/python - <<'PY'
+import importlib.metadata as metadata
+import numpy
+import spacy
+from jnius import autoclass
+
+assert numpy.__version__ == '1.23.5'
+assert metadata.version('pyserini') == '0.17.0'
+spacy.load('en_core_web_sm')
+version = autoclass('java.lang.System').getProperty('java.version')
+assert version.startswith('11.'), version
+print('WebShop dependencies and Java:', version)
+PY
+RUN docker --version
+
+RUN mkdir -p "${HF_HOME}" "${RAY_TMPDIR}" "${TMPDIR}" "${ALFWORLD_DATA}"
+
+# Match the existing torch/CUDA ABI without replacing the pinned torch build.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    CAUSAL_CONV1D_FORCE_BUILD=TRUE uv pip install --python ${VENV_DYAD}/bin/python \
+    "causal-conv1d==1.7.0" --no-build-isolation --no-deps
+
+RUN set -e; \
+    ${VENV_DYAD}/bin/python -c "import causal_conv1d, causal_conv1d_cuda; from causal_conv1d import causal_conv1d_fn, causal_conv1d_update; print('causal_conv1d', causal_conv1d.__version__)"; \
+    echo "== ExpA_verl =="; ${VENV_DYAD}/bin/python -c "import torch, vllm, ray, flash_attn; print('torch', torch.__version__, torch.version.cuda); print('vllm', vllm.__version__); print('flash_attn', flash_attn.__version__)"; \
+    echo "== Qwen3.5 的 linear-attention kernel（缺了不报错，只是显存翻倍）=="; ${VENV_DYAD}/bin/python -c "import fla; from fla.modules import FusedRMSNormGated; from fla.ops.gated_delta_rule import chunk_gated_delta_rule, fused_recurrent_gated_delta_rule; from packaging.version import parse; assert parse(fla.__version__) >= parse('0.2.2'), 'transformers 要求 fla >= 0.2.2'; print('fla', fla.__version__)"; \
+    echo "== numpy 必须 >= 2（verl 0.9 的硬要求）=="; ${VENV_DYAD}/bin/python -c "import numpy,sys; print('numpy', numpy.__version__); sys.exit(0 if int(numpy.__version__.split('.')[0])>=2 else 1)"; \
+    echo "== ExpA_verl/alfworld（进程内 env，必须在 venv-expa-verl 里）=="; ${VENV_DYAD}/bin/python -c "import alfworld, textworld; print('alfworld ok | textworld ok')"; \
+    echo "== ExpA_verl/codegym（进程内 env，必须在 venv-expa-verl 里）=="; ${VENV_DYAD}/bin/python -c "import gymnasium, dill; print('gymnasium', gymnasium.__version__, '| dill ok')"; \
+    echo "== alfworld =="; ${VENV_ALF}/bin/python -c "import alfworld; print('alfworld ok')"; \
+    echo "== codegym  =="; ${VENV_CG}/bin/python -c "import fastapi, uvicorn, gymnasium, dill, pydantic; print('codegym ok')"; \
+    echo "== 确认镜像内无源码（必须靠 -v 挂载）=="; \
+    for d in /workspace/Dynamic_ExpA/agent_system /workspace/Dynamic_ExpA/dyad /workspace/Dynamic_ExpA/verl; do \
+      [ -e "$d" ] && { echo "[FAIL] $d 不应存在于镜像内"; exit 1; } || echo "  ok: 无 $d"; \
+    done; \
+    ${VENV_DYAD}/bin/python -c "import importlib.util as u; assert u.find_spec('verl') is None, 'verl 不应装在镜像里'; print('  ok: venv-expa-verl 无烤入的 verl')"
+
+WORKDIR /workspace/Dynamic_ExpA
+CMD ["/bin/bash"]

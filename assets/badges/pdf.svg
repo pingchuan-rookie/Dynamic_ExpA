@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="163" height="28" viewBox="0 0 163 28" role="img" aria-labelledby="title">
+  <title id="title">PDF: Read paper</title>
+  <defs><clipPath id="clip"><rect width="163" height="28" rx="3"/></clipPath></defs>
+  <g clip-path="url(#clip)">
+    <rect width="163" height="28" fill="#24292f"/>
+    <rect x="67" width="96" height="28" fill="#2563eb"/>
+  </g>
+  <g transform="translate(10 6) scale(0.666667)" fill="white"><g fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M9 12h6M9 16h6"/></g></g>
+  <g fill="white" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11" text-anchor="middle">
+    <text x="45.5" y="18" font-weight="600">PDF</text>
+    <text x="115" y="18">Read paper</text>
+  </g>
+</svg>

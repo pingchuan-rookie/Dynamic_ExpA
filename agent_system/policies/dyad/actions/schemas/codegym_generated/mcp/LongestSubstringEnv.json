@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "LongestSubstringEnv",
+  "tools": [
+    {
+      "name": "InitializeTracking",
+      "description": "call InitializeTracking",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "GetCurrentCharacter",
+      "description": "call GetCurrentCharacter with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "index (int)"
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "CheckCharacterInMap",
+      "description": "call CheckCharacterInMap with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "char": {
+            "type": "string",
+            "description": "char (str)"
+          },
+          "start_window": {
+            "type": "integer",
+            "description": "start_window (int)"
+          }
+        },
+        "required": [
+          "char",
+          "start_window"
+        ]
+      }
+    },
+    {
+      "name": "UpdateStartWindow",
+      "description": "call UpdateStartWindow with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "char": {
+            "type": "string",
+            "description": "char (str)"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "offset (int)"
+          }
+        },
+        "required": [
+          "char",
+          "offset"
+        ]
+      }
+    },
+    {
+      "name": "UpdateCharIndexMap",
+      "description": "call UpdateCharIndexMap with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "char": {
+            "type": "string",
+            "description": "char (str)"
+          },
+          "index": {
+            "type": "integer",
+            "description": "index (int)"
+          }
+        },
+        "required": [
+          "char",
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "UpdateLongestLength",
+      "description": "call UpdateLongestLength with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "current_length": {
+            "type": "integer",
+            "description": "current_length (int)"
+          }
+        },
+        "required": [
+          "current_length"
+        ]
+      }
+    },
+    {
+      "name": "GetStringLength",
+      "description": "call GetStringLength",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string",
+            "description": "answer (unknown)"
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+# Project additions to verl v0.9.0; composed before the main config and CLI overrides.
+algorithm:
+  # DYAD-GIGPO: Agentic RL entrypoints select gamma=0.95 for this estimator only.
+  gigpo:
+    step_advantage_w: 1.0
+    mode: mean_std_norm
+    enable_similarity: False
+    similarity_thresh: 0.95
+
+  # DYAD-SHARED-STEP: one collector/update protocol for both estimators and policies.
+  step_rollout:
+    enabled: False
+    protocol_version: 2
+    profile: alfworld_official_v2
+    action_interface: text
+    history_length: 2
+    max_steps: 50
+    invalid_action_penalty: 0.1
+    resampling: reference_copy
+    loss_reduction: reference_microbatch
+    compute_mean_std_cross_steps: True
+
+
+trainer:
+  v1:
+    sync:
+      parameter_sync_step: 1
+
+# Shared training defaults; overrides retain the same effective values as before migration.
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size_unit: trajectory
+
+data:
+  seed: 0

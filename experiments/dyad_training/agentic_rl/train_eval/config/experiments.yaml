@@ -1,0 +1,19 @@
+# Main experiment. Individual ablations live in ../ablation/*.yaml.
+main:
+  defaults:
+    encoder_enabled: '1'
+    encoder_remote: '1'
+    encoder_backbone: encoder_lm
+    encoder_projector: attention
+    encoder_representation: final_layer_hidden_states
+    encoder_description: mcp
+    training_schedule: joint_optimization
+    encoder_training: projector_and_encoder_lm
+    surface_form: base
+    values: open
+  benchmarks:
+  - gsm8k
+  - alfworld
+  - codegym
+  - webshop
+  - dive

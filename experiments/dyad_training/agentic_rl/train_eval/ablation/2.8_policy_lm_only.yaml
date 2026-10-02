@@ -1,0 +1,10 @@
+# Inherits config/experiments.yaml main.defaults; only differences belong here.
+title: 仅训练 policy LM
+description: 冻结 encoder 侧，仅更新 policy LM。
+overrides:
+  training_schedule: policy_lm_only
+  encoder_training: projector_only
+benchmarks:
+- gsm8k
+- alfworld
+- codegym

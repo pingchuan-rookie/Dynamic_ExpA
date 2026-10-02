@@ -1,0 +1,98 @@
+# Starting budgets, not measured GPU capacity profiles.
+defaults:
+  train_batch_size: '32'
+  ppo_mini_batch_size: '32'
+  rollout_n: '8'
+  ppo_epochs: '1'
+  # science3 / Qwen3.5-2B native template: train 32014, test 31981 tokens.
+  max_prompt_length: '32768'
+  max_response_length: '32768'
+  max_assistant_turns: '30'
+  max_tool_response_length: '16384'
+  param_offload: 'True'
+  optimizer_offload: 'True'
+  attn_impl: flash_attention_2
+  use_remove_padding: 'True'
+  total_epochs: '2'
+  test_freq: '2'
+  save_freq: '10'
+  agent_num_workers: '1'
+  lr_warmup_steps: '10'
+# Shared step protocol; legacy blocks remain for checkpoint evaluation.
+step_profile:
+  step_rollout_enabled: 'True'
+  step_profile: dive_native_v2
+  step_history_length: '2'
+  step_invalid_action_penalty: '0.1'
+  # Per-decision budget; the prompt keeps the default because it holds the native template.
+  # 1024 is a provisional prefill; calibrate it with response_length/clip_ratio metrics.
+  max_response_length: '1024'
+  max_assistant_turns: '30'
+  rollout_temperature: '0.9'
+  kl_loss_coef: '0.001'
+  rollout_top_p: '1.0'
+  val_temperature: '0.4'
+  val_top_p: '1.0'
+  entropy_coeff: '0.001'
+  clip_ratio: '0.2'
+  loss_agg_mode: token-mean
+algorithms:
+  gigpo: {}
+  dyad:
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.001'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+  grpo_react:
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.001'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+models:
+  qwen2.5-0.5b-instruct: &model
+    note: Full-context GPU capacity has not been measured.
+    hardware:
+      a6000: &hardware
+        algorithms:
+          dyad:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.30'
+            dyad_encoder_num_gpus: '1'
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.30'
+      h100: *hardware
+      h200: *hardware
+  qwen3.5-0.8b:
+    note: Local testing only, not a cluster launch profile.
+    hardware:
+      a6000: *hardware
+  qwen3.5-2b: *model
+  qwen3.5-4b: *model
+  qwen3.5-9b: *model
+  qwen3.5-27b: *model
+debug:
+  step_profile:
+    ppo_mini_batch_size: '4'
+    total_epochs: '2'
+    total_training_steps: '2'
+    test_freq: '-1'
+  defaults:
+    train_batch_size: '4'
+    ppo_mini_batch_size: '4'
+    rollout_n: '2'
+    ppo_epochs: '1'
+    train_max_samples: '8'
+    val_max_samples: '4'
+    val_batch_size: '2'
+    total_training_steps: '2'
+    test_freq: '-1'
+  algorithms:
+    dyad:
+      save_freq: '1'
+    grpo_react:
+      save_freq: '-1'

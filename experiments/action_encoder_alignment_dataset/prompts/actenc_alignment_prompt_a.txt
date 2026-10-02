@@ -1,0 +1,53 @@
+You are constructing a canonical MCP tool catalogue for a synthetic agent environment.
+
+Domain:
+{domain}
+
+Action names:
+{action_names}
+
+For each action name, generate one MCP Tool definition.
+
+Requirements:
+1. Preserve every action name exactly as provided.
+2. Each tool must contain exactly these top-level fields:
+   - name
+   - description
+   - inputSchema
+3. description must be a concise natural-language description of what the action does.
+4. inputSchema must be a JSON Schema object with:
+   - type: object
+   - properties
+   - required
+5. Each argument must be represented as a property inside inputSchema.properties.
+6. Each argument property must contain:
+   - type
+   - description
+7. Do not add new actions.
+8. Do not remove any provided actions.
+9. Keep different actions semantically distinguishable, especially actions with similar meanings.
+10. Keep the definitions generic enough to support different concrete contexts within the same domain.
+11. Do not refer to any specific benchmark, dataset, or game.
+12. Do not add title, outputSchema, annotations, execution, icons, or other optional MCP Tool fields.
+13. Return only the structured result.
+
+Output format:
+{
+  "domain": "{domain}",
+  "tools": [
+    {
+      "name": "<exact action name>",
+      "description": "<tool description>",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "<argument name>": {
+            "type": "<JSON Schema type>",
+            "description": "<argument description>"
+          }
+        },
+        "required": ["<required argument name>"]
+      }
+    }
+  ]
+}

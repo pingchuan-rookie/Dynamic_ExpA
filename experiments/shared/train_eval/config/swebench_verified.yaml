@@ -1,0 +1,29 @@
+# Fixed, algorithm-neutral offline evaluation scaffold. No training profile.
+defaults:
+  model: Qwen3.5-2B
+  context_length: 32768
+  max_prompt_length: 24576
+  max_tokens: 4096
+  max_steps: 100
+  history_length: 100
+  temperature: 0.0
+  seed: 10
+  num_trials: 1
+  max_concurrency: 1
+  command_timeout: 120
+  grading_timeout: 1200
+  episode_timeout: 7200
+  environment_cpus: 2
+  memory_limit: 8g
+  pids_limit: 256
+  n_gpus_per_node: 1
+  rollout_tp_size: 1
+  gpu_mem_util: 0.45
+  action_capacity: 4
+  encoder_max_length: 2048
+  max_num_batched_tokens: 8192
+  max_num_seqs: 1
+  attn_impl: flash_attention_2
+  use_remove_padding: true
+  param_offload: true
+  optimizer_offload: true

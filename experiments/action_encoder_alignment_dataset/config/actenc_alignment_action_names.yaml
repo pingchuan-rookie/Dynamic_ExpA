@@ -1,0 +1,60 @@
+domains:
+  spatial_manipulation:
+    - move_to
+    - pick_up
+    - place_in
+    - place_on
+    - remove_from
+    - open
+    - close
+    - insert_into
+    - rotate
+    - transfer
+
+  state_change:
+    - activate
+    - deactivate
+    - start
+    - stop
+    - lock
+    - unlock
+    - heat
+    - cool
+    - clean
+    - rinse
+
+  information:
+    - inspect
+    - search
+    - compare
+    - filter
+    - measure
+    - record
+    - retrieve
+    - sort
+    - select
+    - store
+
+  workflow_communication:
+    - send
+    - receive
+    - submit
+    - confirm
+    - cancel
+    - approve
+    - forward
+    - reject
+    - assign
+    - schedule
+
+  transformation:
+    - combine
+    - separate
+    - replace
+    - adjust
+    - convert
+    - extract
+    - attach
+    - detach
+    - copy
+    - delete

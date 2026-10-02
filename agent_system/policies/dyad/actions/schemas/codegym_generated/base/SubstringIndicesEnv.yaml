@@ -1,0 +1,49 @@
+env_name: SubstringIndicesEnv_base
+source: Leetcode_35003_I
+router: unified
+mode: codegym
+env_serialize: codegym_raw
+template_style: base
+markers:
+  enter: <|FunctionCallBegin|>
+  exit: <|FunctionCallEnd|>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 128
+  emit_eos: true
+argument_order: free
+head:
+  action_name: true
+  argument_key: false
+  closed_value: false
+  init_from: mean_pool
+actions:
+  GetStringLengths:
+    description: call GetStringLengths
+    surface_form: '[{"name": "GetStringLengths", "parameters":'
+    init_weight_with: 0
+    params: {}
+  CompareSubstrings:
+    description: call CompareSubstrings with 1 param(s)
+    surface_form: '[{"name": "CompareSubstrings", "parameters":'
+    init_weight_with: 0
+    params: {}
+  CollectIndices:
+    description: call CollectIndices with 3 param(s)
+    surface_form: '[{"name": "CollectIndices", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Observe:
+    description: call Observe
+    surface_form: '[{"name": "Observe", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Done:
+    description: call Done with 1 param(s)
+    surface_form: '[{"name": "Done", "parameters":'
+    init_weight_with: 0
+    params: {}
+value_sets: {}

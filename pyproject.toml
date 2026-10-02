@@ -1,0 +1,167 @@
+# -------------------------------
+# build-system
+# -------------------------------
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+# -------------------------------
+# project (PEP 621 metadata)
+# -------------------------------
+[project]
+name = "verl"
+# Keep package metadata here; setup_uv.sh is the environment installation entrypoint.
+dynamic = ["version"]
+
+description = "verl: Volcano Engine Reinforcement Learning for LLM"
+license = {text = "Apache-2.0"}
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Bytedance - Seed - MLSys"},
+    {email = "zhangchi.usc1992@bytedance.com"},
+    {email = "gmsheng@connect.hku.hk"},
+]
+dependencies = [
+    "accelerate",
+    "codetiming",
+    "datasets",
+    "dill",
+    "hydra-core",
+    "numpy>=2.0.0",
+    "pandas",
+    "peft",
+    "pyarrow>=19.0.0",
+    "pybind11",
+    "pylatexenc",
+    "ray[default]>=2.41.0",
+    "torchdata",
+    "tensordict>=0.8.0,<=0.10.0,!=0.9.0",
+    # 5.6.0 has a broken flash-attention path for models without attention sinks.
+    "transformers>=5.5.3,!=5.6.0,<5.11",
+    "wandb",
+    "packaging>=20.0",
+    "tensorboard",
+]
+
+[project.urls]
+Homepage = "https://github.com/verl-project/verl"
+
+[project.optional-dependencies]
+test = ["pytest", "pre-commit", "py-spy", "pytest-asyncio", "pytest-rerunfailures"]
+# Preserve the existing extra after PRIME scoring removed pyext.
+prime = []
+geo = ["mathruler", "torchvision", "qwen_vl_utils"]
+gpu = ["liger-kernel", "flash-attn"]
+math = ["math-verify"]
+vllm = ["tensordict>=0.8.0,<=0.10.0,!=0.9.0", "vllm>=0.18.0"]
+sglang = ["tensordict>=0.8.0,<=0.10.0,!=0.9.0", "sglang[srt,openai]==0.5.8", "torch==2.9.1"]
+trl = ["trl<=0.9.6"]
+mcore = ["megatron-bridge", "mbridge"]
+trtllm = ["tensorrt-llm>=1.2.0rc6"]
+
+# -------------------------------
+# tool.ruff - Linting configuration
+# -------------------------------
+[tool.ruff]
+# Note: While the formatter will attempt to format lines such that they remain within the line-length,
+# it isn't a hard upper bound, and formatted lines may exceed the line-length.
+line-length = 120
+exclude = ["scripts/legacy_model_merger.py"]
+
+[tool.ruff.lint]
+isort = {known-first-party = ["verl"]}
+# c.f. https://github.com/vllm-project/vllm/blob/ce8d6b75fc0586045df75ee1568a5b5f9957251b/pyproject.toml
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # isort
+    "I",
+    "G",
+]
+ignore = [
+    # star imports
+    "F405", "F403",
+    # lambda expression assignment
+    "E731",
+    # Loop control variable not used within loop body
+    "B007",
+    # f-string format
+    "UP032",
+    # `.log()` statement uses f-string
+    "G004",
+    # X | None for type annotations
+    "UP045",
+    # deprecated import
+    "UP035",
+]
+
+# -------------------------------
+# tool.mypy - typechecking config
+# -------------------------------
+[tool.mypy]
+pretty            = true
+ignore_missing_imports = true
+explicit_package_bases = true
+follow_imports = "skip"
+
+# Blanket silence
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+"verl.trainer.config.algorithm",
+"verl.trainer.ppo.core_algos",
+"verl.trainer.ppo.reward",
+"verl.workers.reward_manager",
+"verl.workers.reward_manager.*",
+]
+ignore_errors = false
+
+# -------------------------------
+# tool.setuptools - Additional config
+# -------------------------------
+[tool.setuptools]
+include-package-data = true
+
+# We read the version from a file in 'verl/version/version'
+[tool.setuptools.dynamic]
+version = {file = "verl/version/version"}
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agent_system", "agent_system.*", "verl_extensions", "verl_extensions.*", "verl", "verl.*"]
+exclude = ["*.test", "*.test.*", "*.tests", "*.tests.*", "*.unittest", "*.unittest.*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+agent_system = [
+  "**/*.yaml", "**/*.json", "**/*.txt", "**/*.txt.gz",
+  # Source manifests are checked at runtime, including their Python files and assets.
+  "environments/env_package/*/source/**/*",
+]
+verl_extensions = ["config/**/*.yaml", "upstream.json"]
+verl = [
+  "version/*",
+  "trainer/config/*.yaml",
+  "trainer/config/*/*.yaml",
+  "experimental/*/config/*.yaml",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+  "**/__pycache__/*", "**/*.pyc", "**/build/*", "**/build/**/*", "**/*.egg-info/*",
+  "**/test/*", "**/test/**/*", "**/tests/*", "**/tests/**/*", "**/unittest/*", "**/unittest/**/*",
+]

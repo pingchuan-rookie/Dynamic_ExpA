@@ -1,0 +1,7 @@
+{
+  "t2bench": {
+    "url": "https://github.com/sierra-research/tau2-bench.git",
+    "commit": "a2c024725189473d2d7cea3a5cfdbcc67478e41f",
+    "litellm": "1.81.11"
+  }
+}

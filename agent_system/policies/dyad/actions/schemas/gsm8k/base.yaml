@@ -1,0 +1,32 @@
+# Surface serialization only; read action semantics from sibling mcp.json.
+# Action declaration order determines head-row order.
+
+env_name: gsm8k_calc_base
+router: unified
+mode: codegym
+env_serialize: calc_raw
+markers:
+  enter: <action>
+  exit: </action>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 32
+  emit_eos: true
+argument_order: free
+head:
+  action_name: true
+  argument_key: false
+  closed_value: false
+  init_from: mean_pool
+actions:
+  calculate:
+    surface_form: calculate
+    init_weight_with: 0
+    params: {}
+  answer:
+    surface_form: answer
+    init_weight_with: 0
+    params: {}

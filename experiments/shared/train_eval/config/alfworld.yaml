@@ -1,0 +1,227 @@
+# Starting profiles from existing configurations; capacity still requires measurement.
+# GRPO uses micro-batch size 1 to reduce peak logits memory for long trajectories.
+defaults:
+  train_batch_size: '16'
+  ppo_mini_batch_size: '16'
+  rollout_n: '8'
+  ppo_epochs: '1'
+  max_prompt_length: '1408'
+  max_response_length: '30720'
+  max_assistant_turns: '30'
+  # ToolAgentLoop counts characters, including observation and available actions.
+  max_tool_response_length: '8192'
+  param_offload: 'False'
+  optimizer_offload: 'False'
+  attn_impl: flash_attention_2
+  use_remove_padding: 'True'
+  total_epochs: '2'
+  test_freq: '2'
+  save_freq: '10'
+# Shared step v2 is required for training and checkpoint evaluation.
+step_profile:
+  step_rollout_enabled: 'True'
+  step_profile: alfworld_official_v2
+  step_history_length: '2'
+  step_invalid_action_penalty: '0.1'
+  ppo_mini_batch_size: '256'
+  max_prompt_length: '2048'
+  max_response_length: '512'
+  max_assistant_turns: '50'
+  max_tool_turns: '50'
+  learning_rate: 1e-6
+  kl_loss_coef: '0.01'
+  rollout_temperature: '1.0'
+  rollout_top_p: '1.0'
+  val_temperature: '0.4'
+  val_top_p: '1.0'
+  entropy_coeff: '0.001'
+  clip_ratio: '0.2'
+  loss_agg_mode: token-mean
+  total_epochs: '150'
+  total_training_steps: '150'
+  test_freq: '5'
+algorithms:
+  # GiGPO defaults; the shared step profile owns the final budget.
+  gigpo:
+    ppo_mini_batch_size: '256'
+    max_prompt_length: '2048'
+    max_response_length: '512'
+    max_assistant_turns: '50'
+    learning_rate: 1e-6
+    kl_loss_coef: '0.01'
+    rollout_temperature: '1.0'
+    rollout_top_p: '1.0'
+    val_temperature: '0.4'
+    val_top_p: '1.0'
+    entropy_coeff: '0.001'
+    clip_ratio: '0.2'
+    loss_agg_mode: token-mean
+    # A step limit must remain reachable even with one rollout batch per epoch.
+    total_epochs: '150'
+    total_training_steps: '150'
+    test_freq: '5'
+  dyad:
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.05'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+  grpo_react:
+    max_num_seqs: '1024'
+    max_num_batched_tokens: '8192'
+    learning_rate: 1e-6
+    rollout_temperature: '0.9'
+    kl_loss_coef: '0.001'
+    kl_loss_type: low_var_kl
+    rollout_tp_size: '1'
+models:
+  deepseek-v2-lite-chat:
+    defaults:
+      param_offload: true
+      optimizer_offload: true
+    hardware:
+      a6000:
+        note: Local Chat probe; TP4 rollout passed but the first FSDP2 CPU-offload actor update OOMed on 4x A6000.
+        algorithms:
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '4'
+            rollout_tp_size: '4'
+            gpu_mem_util: '0.30'
+  deepseek-v2-lite:
+    defaults:
+      param_offload: true
+      optimizer_offload: true
+    hardware:
+      a6000:
+        note: Local MoE probe only; TP4 rollout passed but full-parameter FSDP backward OOMed on 4x A6000.
+        algorithms:
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '4'
+            rollout_tp_size: '4'
+            gpu_mem_util: '0.30'
+  llama-3.2-3b-instruct:
+    defaults:
+      param_offload: true
+      optimizer_offload: true
+    hardware:
+      a6000:
+        note: Local baseline smoke profile; full-context training capacity is not verified.
+        algorithms:
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '2'
+            gpu_mem_util: '0.30'
+  qwen2.5-0.5b-instruct:
+    defaults: {}
+    hardware:
+      a6000: &qwen2_5_0_5b_instruct_a6000
+        algorithms:
+          dyad:
+            micro_batch_size: '2'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.30'
+            dyad_encoder_num_gpus: '1'
+            cuda_visible_devices: 0,1
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.30'
+      h100: &qwen2_5_0_5b_instruct_h100
+        algorithms: &qwen2_5_0_5b_instruct_h100_algorithms
+          dyad:
+            micro_batch_size: '2'
+            n_gpus_per_node: '4'
+            gpu_mem_util: '0.30'
+            dyad_encoder_num_gpus: '1'
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '4'
+            gpu_mem_util: '0.30'
+      h200: &qwen2_5_0_5b_instruct_h200
+        note: 继承迁移前 H100/H200 共用档的数值，尚未独立调优。
+        algorithms: *qwen2_5_0_5b_instruct_h100_algorithms
+  qwen3.5-2b:
+    defaults: &qwen3_5_2b_defaults
+      param_offload: true
+      optimizer_offload: true
+    hardware:
+      a6000:
+        note: Local Dyad profile; validate debug runs before using for full training.
+        algorithms:
+          dyad:
+            micro_batch_size: '1'
+            n_gpus_per_node: '2'
+            gpu_mem_util: '0.30'
+            dyad_encoder_num_gpus: '1'
+            cuda_visible_devices: 0,1,2
+      a6000_eval:
+        note: 本地 Qwen3.5-2B GRPO-ReAct 评估资源档；训练容量未验证。
+        algorithms:
+          grpo_react:
+            micro_batch_size: '1'
+            n_gpus_per_node: '1'
+            gpu_mem_util: '0.45'
+      h100: &qwen3_5_2b_h100
+        note: Migrated from cluster templates; capacity has not been validated.
+        algorithms: *qwen2_5_0_5b_instruct_h100_algorithms
+      h200: *qwen2_5_0_5b_instruct_h200
+  qwen3.5-4b:
+    defaults: *qwen3_5_2b_defaults
+    hardware:
+      h100: *qwen3_5_2b_h100
+      h200: *qwen2_5_0_5b_instruct_h200
+  qwen3.5-9b:
+    defaults: *qwen3_5_2b_defaults
+    hardware:
+      h100: *qwen3_5_2b_h100
+      h200: *qwen2_5_0_5b_instruct_h200
+  qwen3.5-27b:
+    defaults: *qwen3_5_2b_defaults
+    hardware:
+      h100: *qwen3_5_2b_h100
+      h200: *qwen2_5_0_5b_instruct_h200
+debug:
+  step_profile:
+    ppo_mini_batch_size: '4'
+    total_epochs: '2'
+    total_training_steps: '2'
+    test_freq: '-1'
+  defaults:
+    train_batch_size: '4'
+    ppo_mini_batch_size: '4'
+    rollout_n: '2'
+    ppo_epochs: '1'
+    train_max_samples: '8'
+    val_max_samples: '4'
+    val_batch_size: '2'
+    agent_num_workers: '2'
+  algorithms:
+    gigpo:
+      # Smoke-only step mini-batch; this is not the official 256-step budget.
+      ppo_mini_batch_size: '4'
+    dyad:
+      micro_batch_size: '2'
+      n_gpus_per_node: '2'
+      cuda_visible_devices: 0,1,2
+      gpu_mem_util: '0.3'
+      total_training_steps: '2'
+      test_freq: '-1'
+      save_freq: '1'
+      dyad_encoder_num_gpus: '1'
+    grpo_react:
+      micro_batch_size: '1'
+      n_gpus_per_node: '2'
+      cuda_visible_devices: 0,1
+      gpu_mem_util: '0.3'
+      total_training_steps: '2'
+      test_freq: '-1'
+      save_freq: '-1'
+  experiments:
+    2.2_projector_mean:
+      micro_batch_size: 1
+      gpu_mem_util: 0.25
+    2.3_frozen_encoder_llm:
+      micro_batch_size: 1
+      gpu_mem_util: 0.25

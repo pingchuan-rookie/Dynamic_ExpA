@@ -1,0 +1,8 @@
+# Inherits config/experiments.yaml main.defaults; only differences belong here.
+title: 封闭参数值集合
+description: 仅 ALFWorld：将自由生成参数值改为固定值槽位选择。
+overrides:
+  surface_form: base
+  values: closed
+benchmarks:
+- alfworld

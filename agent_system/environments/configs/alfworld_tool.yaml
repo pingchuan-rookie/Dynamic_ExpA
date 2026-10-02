@@ -1,0 +1,43 @@
+# ALFWorld tools lease stateful environments from a Ray actor pool.
+tools:
+  - class_name: "agent_system.environments.backends.alfworld.tool.AlfworldLocalEnvTool"
+    config:
+      type: native
+      env_type: "alfworld"
+
+      pool_size: null  # Size for the trajectories assigned to this agent worker; reuse across train/validation.
+                                     # ALFWORLD_ENV_POOL_SIZE overrides capacity and must cover the assigned shard.
+      num_cpus_per_worker: 0.1  # Logical CPU reservation; insufficient capacity is an error.
+      # Configuration/mappings default to this package; data defaults to ALFWORLD_DATA.
+
+      create_kwargs:
+        reset_payload:
+          game: 0
+          world_type: "Text"
+        auto_reset: true
+      strict_action_validation: false
+      reward_mode: "last"
+      max_turns: 30
+
+      # ===== adapter（alfworld）=====
+      tool_name: "alfworld_action"
+      # ALFWorld requires the literal preposition in/on in put commands.
+      default_put_preposition: "in/on"
+      allow_raw_action_fallback: true
+      action_templates:
+        goto: "go to {receptacle}"
+        take: "take {object} from {receptacle}"
+        put: "put {object} {preposition} {receptacle}"
+        open: "open {receptacle}"
+        close: "close {receptacle}"
+        look: "look"
+        inventory: "inventory"
+        examine: "examine {object}"
+        clean: "clean {object} with {receptacle}"
+        cool: "cool {object} with {receptacle}"
+        heat: "heat {object} with {receptacle}"
+        slice: "slice {object} with {receptacle}"
+        # Lamp use is required for the look-at-object-in-light task family.
+        use: "use {object}"
+        # Retained for native-schema compatibility; closed schemas omit toggle.
+        toggle: "toggle {object}"

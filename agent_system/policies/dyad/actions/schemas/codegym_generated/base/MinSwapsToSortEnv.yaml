@@ -1,0 +1,59 @@
+env_name: MinSwapsToSortEnv_base
+source: Leetcode_41741_I
+router: unified
+mode: codegym
+env_serialize: codegym_raw
+template_style: base
+markers:
+  enter: <|FunctionCallBegin|>
+  exit: <|FunctionCallEnd|>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 128
+  emit_eos: true
+argument_order: free
+head:
+  action_name: true
+  argument_key: false
+  closed_value: false
+  init_from: mean_pool
+actions:
+  CreateEnumeratedList:
+    description: call CreateEnumeratedList
+    surface_form: '[{"name": "CreateEnumeratedList", "parameters":'
+    init_weight_with: 0
+    params: {}
+  SortEnumeratedList:
+    description: call SortEnumeratedList with 1 param(s)
+    surface_form: '[{"name": "SortEnumeratedList", "parameters":'
+    init_weight_with: 0
+    params: {}
+  InitializeVisitedArray:
+    description: call InitializeVisitedArray with 1 param(s)
+    surface_form: '[{"name": "InitializeVisitedArray", "parameters":'
+    init_weight_with: 0
+    params: {}
+  FindCycleSize:
+    description: call FindCycleSize with 3 param(s)
+    surface_form: '[{"name": "FindCycleSize", "parameters":'
+    init_weight_with: 0
+    params: {}
+  CalculateSwaps:
+    description: call CalculateSwaps with 1 param(s)
+    surface_form: '[{"name": "CalculateSwaps", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Observe:
+    description: call Observe
+    surface_form: '[{"name": "Observe", "parameters":'
+    init_weight_with: 0
+    params: {}
+  Done:
+    description: call Done with 1 param(s)
+    surface_form: '[{"name": "Done", "parameters":'
+    init_weight_with: 0
+    params: {}
+value_sets: {}

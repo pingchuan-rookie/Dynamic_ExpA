@@ -1,0 +1,43 @@
+# Shared evaluation budgets; actor counts do not change the selected task set.
+defaults:
+  model: Qwen3.5-2B
+  context_length: 32768
+  max_prompt_length: 16384
+  max_tokens: 2048
+  temperature: 0.0
+  thinking: 'off'
+  num_trials: 1
+  max_concurrency: 1
+  seed: 10
+  timeout: 120.0
+  episode_timeout: 1800.0
+  max_retries: 0
+  max_errors: 10
+  max_assistant_turns: 200
+  history_length: 2
+  env_call_timeout: 300.0
+  user_temperature: 0.0
+  user_max_tokens: 2048
+  # Each role resolves default to off for Qwen3.5; other models keep provider defaults.
+  user_thinking: default
+  judge_temperature: 0.0
+  judge_max_tokens: 2048
+  judge_thinking: default
+  n_gpus_per_node: 1
+  rollout_tp_size: 1
+  gpu_mem_util: 0.45
+  agent_num_workers: 1
+  action_capacity: 64
+  encoder_max_length: 1024
+  max_num_batched_tokens: 8192
+  max_num_seqs: 1
+  debug_limit: 3
+  param_offload: true
+  optimizer_offload: true
+  use_remove_padding: true
+  attn_impl: flash_attention_2
+environments:
+  t2bench:
+    domain: all
+    task_split: base
+    max_steps: 200

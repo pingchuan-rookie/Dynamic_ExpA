@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "HeapSortEnv",
+  "tools": [
+    {
+      "name": "MaxHeapify",
+      "description": "call MaxHeapify with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "n": {
+            "type": "integer",
+            "description": "n (int)"
+          },
+          "i": {
+            "type": "integer",
+            "description": "i (int)"
+          }
+        },
+        "required": [
+          "n",
+          "i"
+        ]
+      }
+    },
+    {
+      "name": "BuildMaxHeap",
+      "description": "call BuildMaxHeap",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "SwapElements",
+      "description": "call SwapElements with 2 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "i": {
+            "type": "integer",
+            "description": "i (int)"
+          },
+          "j": {
+            "type": "integer",
+            "description": "j (int)"
+          }
+        },
+        "required": [
+          "i",
+          "j"
+        ]
+      }
+    },
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string",
+            "description": "answer (List[int])"
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      }
+    }
+  ]
+}

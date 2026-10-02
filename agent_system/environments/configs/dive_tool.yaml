@@ -1,0 +1,8 @@
+# Bootstrap transport only; each task supplies its own published DIVE tool schemas.
+tools:
+  - class_name: agent_system.environments.backends.dive.tool.DiveLocalEnvTool
+    config:
+      type: native
+      env_type: dive
+      tool_name: dive_session
+      num_cpus_per_worker: 0.25

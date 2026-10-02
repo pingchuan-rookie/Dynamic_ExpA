@@ -1,0 +1,22 @@
+# Python 3.10, Java 11; deliberately not upstream training requirements.
+# CPU-only torch is imported by the official text environment (images disabled).
+--extra-index-url https://download.pytorch.org/whl/cpu
+beautifulsoup4==4.11.1
+cleantext==1.1.4
+Flask==2.1.2
+Werkzeug==2.1.2
+gdown==5.2.0
+gym==0.24.0
+numpy==1.23.5
+pyserini==0.17.0
+pyjnius==1.6.1
+faiss-cpu==1.7.4
+rank-bm25==0.2.2
+rich==12.4.4
+selenium==4.2.0
+spacy==3.7.5
+thefuzz==0.19.0
+torch==2.2.2+cpu
+transformers==4.30.2
+# The reward implementation loads this small POS-tagging model, not en_core_web_lg.
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl

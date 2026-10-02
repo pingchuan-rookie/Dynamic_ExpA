@@ -1,0 +1,81 @@
+"""
+Tool for retrieving licenses list from Crossref database.
+
+Returns list of licenses with optional query filtering and pagination.
+"""
+
+import json
+import requests
+from typing import Any, Dict
+from urllib.parse import urlencode
+
+from tools.core.tool import Tool
+from tools.core.types import ExecutionContext
+
+
+class CrossrefLicensesTool(Tool):
+    """
+    Tool for retrieving licenses list from Crossref database.
+    
+    Description:
+        Returns list of licenses with optional query filtering and pagination.
+    
+    Input Parameters:
+        - query (str, optional): Parameter description
+        - cursor (str, optional): Parameter description
+        - rows (str, optional): Parameter description
+        - mailto (str, optional): Parameter description
+        - offset (str, optional): Parameter description
+    
+    Output Format:
+        Returns the raw API response directly without modification.
+        - Success: JSON object containing response data
+        - Error: {"error": "HTTP error message"} or {"error": "exception message"}
+    """
+
+    def execute(self, context: ExecutionContext, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute crossref_licenses request."""
+        import time
+        
+        base_url = "https://api.crossref.org/licenses"
+        query_params = {k: v for k, v in params.items() if v is not None}
+        
+        if query_params:
+            url = f"{base_url}?{urlencode(query_params)}"
+        else:
+            url = base_url
+        
+        headers = {
+            'User-Agent': 'VerifiableTools/1.0 (https://github.com/verifiable-tools)',
+            'Accept': 'application/json'
+        }
+        
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(url, headers=headers, timeout=60)
+                response.raise_for_status()
+                
+                return response.json()
+                    
+            except requests.exceptions.HTTPError as e:
+                if attempt == max_retries - 1:
+                    return {"error": f"HTTP {e.response.status_code}: {e.response.reason} (after {max_retries} attempts)"}
+                else:
+                    time.sleep(1 * (attempt + 1))
+                    continue
+                    
+            except requests.exceptions.RequestException as e:
+                if attempt == max_retries - 1:
+                    return {"error": f"Request error: {str(e)} (after {max_retries} attempts)"}
+                else:
+                    time.sleep(1 * (attempt + 1))
+                    continue
+                    
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    return {"error": f"{str(e)} (after {max_retries} attempts)"}
+                else:
+                    time.sleep(1 * (attempt + 1))
+                    continue
+        return {"error": "Max retries exceeded"}

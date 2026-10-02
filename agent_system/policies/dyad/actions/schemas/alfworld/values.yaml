@@ -1,0 +1,127 @@
+# ALFWorld value inventories, independent of MCP semantics and surface serialization.
+# Store semantic names without leading spaces; value_surface_prefix handles token spacing.
+# Collected from ALFWorld 0.4.2 games; keep names consistent with alfworld_entities.json.
+
+objects:
+  - alarmclock
+  - apple
+  - book
+  - bowl
+  - box
+  - bread
+  - butterknife
+  - candle
+  - cd
+  - cellphone
+  - cloth
+  - creditcard
+  - cup
+  - desklamp
+  - dishsponge
+  - egg
+  - floorlamp
+  - fork
+  - glassbottle
+  - handtowel
+  - kettle
+  - keychain
+  - knife
+  - ladle
+  - laptop
+  - lettuce
+  - mug
+  - newspaper
+  - pan
+  - papertowelroll
+  - pen
+  - pencil
+  - peppershaker
+  - pillow
+  - plate
+  - pot
+  - potato
+  - remotecontrol
+  - saltshaker
+  - soapbar
+  - soapbottle
+  - spatula
+  - spoon
+  - spraybottle
+  - statue
+  - teddybear
+  - tissuebox
+  - toiletpaper
+  - tomato
+  - towel
+  - vase
+  - watch
+  - wateringcan
+  - winebottle
+
+receptacles:
+  - armchair
+  - bathtubbasin
+  - bed
+  - cabinet
+  - cart
+  - coffeemachine
+  - coffeetable
+  - countertop
+  - desk
+  - diningtable
+  - drawer
+  - dresser
+  - fridge
+  - garbagecan
+  - handtowelholder
+  - laundryhamper
+  - microwave
+  - ottoman
+  - safe
+  - shelf
+  - sidetable
+  - sinkbasin
+  - sofa
+  - stoveburner
+  - toaster
+  - toilet
+  - toiletpaperhanger
+  - towelholder
+  - tvstand
+
+# Instance ids use the global range 0..27; masks do not narrow the range by the preceding entity.
+ids:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
+  - 27
+
+# Unions reuse member-set extended ids so each value occupies one head row.
+entities:
+  union:
+    - objects
+    - receptacles

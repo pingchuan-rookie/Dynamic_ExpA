@@ -1,0 +1,185 @@
+
+env_name: alfworld_closed
+router: unified
+mode: codegym
+env_serialize: alfworld
+markers:
+  enter: <Action>
+  exit: </Action>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 8
+  emit_eos: true
+argument_order: fixed
+# Keep the leading space in closed-value tokens to match Qwen canonical tokenization.
+value_surface_prefix: ' '
+head:
+  action_name: true
+  argument_key: false
+  closed_value: true
+  init_from: mean_pool
+actions:
+  goto:
+    surface_form: go to
+    init_weight_with: 1
+    params:
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  take:
+    surface_form: take
+    init_weight_with: 1
+    params:
+      object:
+        value_kind: closed
+        value_set: objects
+      id_object:
+        value_kind: closed
+        value_set: ids
+        surface_form_suffix: ' from'
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  put:
+    surface_form: put
+    init_weight_with: 1
+    params:
+      object:
+        value_kind: closed
+        value_set: objects
+      id_object:
+        value_kind: closed
+        value_set: ids
+        surface_form_suffix: ' in/on'
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  open:
+    surface_form: open
+    init_weight_with: 1
+    params:
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  close:
+    surface_form: close
+    init_weight_with: 1
+    params:
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  examine:
+    surface_form: examine
+    init_weight_with: 1
+    params:
+      target:
+        value_kind: closed
+        value_set: entities
+      id_target:
+        value_kind: closed
+        value_set: ids
+  clean:
+    surface_form: clean
+    init_weight_with: 1
+    params:
+      object:
+        value_kind: closed
+        value_set: objects
+      id_object:
+        value_kind: closed
+        value_set: ids
+        surface_form_suffix: ' with'
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  heat:
+    surface_form: heat
+    init_weight_with: 1
+    params:
+      object:
+        value_kind: closed
+        value_set: objects
+      id_object:
+        value_kind: closed
+        value_set: ids
+        surface_form_suffix: ' with'
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  cool:
+    surface_form: cool
+    init_weight_with: 1
+    params:
+      object:
+        value_kind: closed
+        value_set: objects
+      id_object:
+        value_kind: closed
+        value_set: ids
+        surface_form_suffix: ' with'
+      receptacle:
+        value_kind: closed
+        value_set: receptacles
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  slice:
+    surface_form: slice
+    init_weight_with: 1
+    params:
+      object:
+        value_kind: closed
+        value_set: objects
+      id_object:
+        value_kind: closed
+        value_set: ids
+        surface_form_suffix: ' with'
+      receptacle:
+        value_kind: closed
+        value_set: objects
+      id_receptacle:
+        value_kind: closed
+        value_set: ids
+  look:
+    surface_form: look
+    init_weight_with: 1
+    params: {}
+  inventory:
+    surface_form: inventory
+    init_weight_with: 1
+    params: {}
+  # Native lighting action; append without reordering existing action names.
+  use:
+    surface_form: use
+    init_weight_with: 1
+    params:
+      object:
+        value_kind: closed
+        value_set: objects
+      id_object:
+        value_kind: closed
+        value_set: ids

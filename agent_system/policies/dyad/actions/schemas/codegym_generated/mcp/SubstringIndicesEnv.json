@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "SubstringIndicesEnv",
+  "tools": [
+    {
+      "name": "GetStringLengths",
+      "description": "call GetStringLengths",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "CompareSubstrings",
+      "description": "call CompareSubstrings with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "index (int)"
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "CollectIndices",
+      "description": "call CollectIndices with 3 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "indices": {
+            "type": "string",
+            "description": "indices (list)"
+          },
+          "index": {
+            "type": "integer",
+            "description": "index (int)"
+          },
+          "is_match": {
+            "type": "boolean",
+            "description": "is_match (bool)"
+          }
+        },
+        "required": [
+          "indices",
+          "index",
+          "is_match"
+        ]
+      }
+    },
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string",
+            "description": "answer (unknown)"
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      }
+    }
+  ]
+}

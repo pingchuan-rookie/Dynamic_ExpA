@@ -1,0 +1,21 @@
+# Official WebShop: full catalog, human goals, continuous [0, 1] reward.
+# Relative paths resolve against the repository root, not the process working directory.
+# Override mounts/interpreter using WEBSHOP_REPO, WEBSHOP_ASSETS, WEBSHOP_PYTHON_BIN.
+tools:
+  - class_name: agent_system.environments.backends.webshop.tool.WebShopLocalEnvTool
+    config:
+      type: native
+      env_type: webshop
+      tool_name: webshop_action
+      webshop_root: agent_system/environments/env_package/webshop/source
+      python_executable: .venvs/webshop/bin/python
+      # Replicas are per agent-loop process, never batch_size * rollout_n.
+      backend_replicas: 1
+      sessions_per_backend: 64
+      num_cpus_per_worker: 1.0
+      startup_timeout: 600
+      request_timeout: 120
+      lease_timeout: 600
+      reward_mode: last
+      strict_action_validation: true
+      max_turns: 100

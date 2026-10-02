@@ -1,0 +1,81 @@
+# Surface serialization only; read action semantics from sibling mcp.json.
+# Action declaration order determines head-row order.
+
+env_name: alfworld_base
+router: unified
+mode: codegym
+env_serialize: alfworld_raw
+markers:
+  enter: <Action>
+  exit: </Action>
+  argument_value_end: '
+
+    '
+  value_end_on_suffix: false
+  value_end_on_exit: true
+  max_value_tokens: 24
+  emit_eos: true
+argument_order: free
+head:
+  action_name: true
+  argument_key: false
+  closed_value: false
+  init_from: mean_pool
+actions:
+  goto:
+    surface_form: go to
+    init_weight_with: 1
+    params: {}
+  take:
+    surface_form: take
+    init_weight_with: 1
+    params: {}
+  put:
+    surface_form: put
+    init_weight_with: 1
+    params: {}
+  open:
+    surface_form: open
+    init_weight_with: 1
+    params: {}
+  close:
+    surface_form: close
+    init_weight_with: 1
+    params: {}
+  toggle:
+    surface_form: toggle
+    init_weight_with: 1
+    params: {}
+  clean:
+    surface_form: clean
+    init_weight_with: 1
+    params: {}
+  heat:
+    surface_form: heat
+    init_weight_with: 1
+    params: {}
+  cool:
+    surface_form: cool
+    init_weight_with: 1
+    params: {}
+  look:
+    surface_form: look
+    init_weight_with: 1
+    params: {}
+  inventory:
+    surface_form: inventory
+    init_weight_with: 1
+    params: {}
+  examine:
+    surface_form: examine
+    init_weight_with: 1
+    params: {}
+  slice:
+    surface_form: slice
+    init_weight_with: 1
+    params: {}
+  # Append to preserve existing action IDs. Lighting tasks require the native `use` verb.
+  use:
+    surface_form: use
+    init_weight_with: 1
+    params: {}

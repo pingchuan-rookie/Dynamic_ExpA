@@ -1,0 +1,20 @@
+Convert the following MCP Tool catalogue into a natural-language action catalogue.
+
+MCP Tool catalogue:
+{visible_mcp}
+
+Requirements:
+1. Preserve every tool name exactly.
+2. Preserve the meaning of every tool description exactly.
+3. Preserve the argument structure defined by inputSchema.
+4. Derive the natural-language wording only from:
+   - description
+   - inputSchema.properties
+   - the descriptions of those properties
+5. Do not add new actions.
+6. Do not add new arguments.
+7. Do not add capabilities, assumptions, examples, or constraints that are not present in the MCP definitions.
+8. Do not omit any visible tool.
+9. Do not omit any argument.
+10. Keep each tool clearly separated.
+11. Return only the natural-language catalogue.

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": "MinSwapsToSortEnv",
+  "tools": [
+    {
+      "name": "CreateEnumeratedList",
+      "description": "call CreateEnumeratedList",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "SortEnumeratedList",
+      "description": "call SortEnumeratedList with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "enumerated_list": {
+            "type": "string",
+            "description": "enumerated_list (unknown)"
+          }
+        },
+        "required": [
+          "enumerated_list"
+        ]
+      }
+    },
+    {
+      "name": "InitializeVisitedArray",
+      "description": "call InitializeVisitedArray with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "string",
+            "description": "size (unknown)"
+          }
+        },
+        "required": [
+          "size"
+        ]
+      }
+    },
+    {
+      "name": "FindCycleSize",
+      "description": "call FindCycleSize with 3 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "string",
+            "description": "index (unknown)"
+          },
+          "sorted_enumerated": {
+            "type": "string",
+            "description": "sorted_enumerated (unknown)"
+          },
+          "visited": {
+            "type": "string",
+            "description": "visited (unknown)"
+          }
+        },
+        "required": [
+          "index",
+          "sorted_enumerated",
+          "visited"
+        ]
+      }
+    },
+    {
+      "name": "CalculateSwaps",
+      "description": "call CalculateSwaps with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cycle_size": {
+            "type": "string",
+            "description": "cycle_size (unknown)"
+          }
+        },
+        "required": [
+          "cycle_size"
+        ]
+      }
+    },
+    {
+      "name": "Observe",
+      "description": "call Observe",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "Done",
+      "description": "call Done with 1 param(s)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string",
+            "description": "answer (unknown)"
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+You are generating one supervised training case for an agent action-selection task.
+
+Domain:
+{domain}
+
+Available action catalogue:
+{visible_mcp}
+
+Target action:
+{target_action}
+
+Entry-marker rule:
+{rendered_entry_marker_rule}
+
+Generate a context and a short reasoning statement such that the reasoning clearly implies that the next action to execute should be the target action.
+
+Requirements:
+1. The target action must be valid under the provided action catalogue.
+2. The context must provide enough information for the reasoning to be coherent.
+3. The reasoning must express the intention corresponding to the target action.
+4. Do not mention the target action name directly unless it would naturally occur in ordinary language.
+5. Do not copy the target action description verbatim.
+6. Do not mention actions that are not present in the provided action catalogue.
+7. Do not introduce a situation in which another available action is more appropriate than the target action.
+8. Keep the context concise.
+9. Keep the reasoning concise and natural.
+10. Do not output the action itself after the entry marker.
+11. Do not generate the entry marker; it will be appended deterministically by the dataset builder.
+12. Produce a new semantic case rather than a trivial paraphrase of previous cases.
+
+Return only JSON:
+
+{
+  "context": "<context / observation>",
+  "reasoning": "<reasoning / action intention>"
+}
